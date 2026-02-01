@@ -1,5 +1,6 @@
 package com.clinica.api.modules.casos.domain.entity;
 
+import com.clinica.api.modules.casos.domain.enums.EstadoCaso;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -46,6 +47,7 @@ public class Caso {
     @Column(nullable = false, name = "fecha_fin")
     private LocalDate fechaFin;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, name = "estado_caso")
-    private Estado estado;
+    private EstadoCaso estado;
 }

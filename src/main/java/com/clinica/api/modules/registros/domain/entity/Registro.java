@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @Setter
 @Entity
 @Table(
-        name = "casos"
+        name = "registros"
 )
 public class Registro {
 
