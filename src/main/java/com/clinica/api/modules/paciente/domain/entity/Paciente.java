@@ -1,5 +1,6 @@
 package com.clinica.api.modules.paciente.domain.entity;
 
+import com.clinica.api.modules.historiaClinica.domain.entity.HistoriaClinica;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -47,4 +48,7 @@ public class Paciente {
 
     @Column(name = "antecedentes_odontologicos_url")
     private String antecOdon;
+
+    @OneToOne(mappedBy = "paciente",fetch = FetchType.LAZY)
+    private HistoriaClinica historiaClinica;
 }

@@ -1,5 +1,6 @@
 package com.clinica.api.modules.registros.domain.entity;
 
+import com.clinica.api.modules.casos.domain.entity.Caso;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,4 +37,12 @@ public class Registro {
 
     @Column(name = "observaciones")
     private String observaciones;
+
+    @ManyToOne(optional = false,fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "caso_id",
+            nullable = false
+    )
+    private Caso caso;
+
 }
