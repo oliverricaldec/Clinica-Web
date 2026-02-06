@@ -1,11 +1,16 @@
 package com.clinica.api.modules.paciente.service;
 
 
+import com.clinica.api.web.dto.request.PacienteCreateRequest;
+import com.clinica.api.web.dto.response.PacienteResponse;
 import com.clinica.api.modules.historiaClinica.domain.entity.HistoriaClinica;
-import com.clinica.api.modules.historiaClinica.repository.HistoriaClinicaRepository;
 import com.clinica.api.modules.paciente.domain.entity.Paciente;
+import com.clinica.api.exception.ConflictException;
+import com.clinica.api.mapper.PacienteMapper;
+import com.clinica.api.modules.historiaClinica.repository.HistoriaClinicaRepository;
 import com.clinica.api.modules.paciente.repository.PacienteRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 
@@ -14,29 +19,37 @@ public class PacienteService {
 
     private final PacienteRepository pacienteRepository;
     private final HistoriaClinicaRepository historiaClinicaRepository;
+    private final PacienteMapper pacienteMapper;
 
-    public PacienteService(PacienteRepository pacienteRepository, HistoriaClinicaRepository historiaClinicaRepository) {
+
+    public PacienteService(PacienteRepository pacienteRepository, HistoriaClinicaRepository historiaClinicaRepository, PacienteMapper pacienteMapper) {
         this.pacienteRepository = pacienteRepository;
         this.historiaClinicaRepository = historiaClinicaRepository;
+        this.pacienteMapper = pacienteMapper;
     }
 
-    public Paciente crearPaciente(Paciente paciente) {
-        // 1. validar dni
-        if (pacienteRepository.existsByDni(paciente.getDni())){
-            throw new IllegalArgumentException("Ya existe un paciente con ese DNI");
+    @Transactional
+    public PacienteResponse crear(PacienteCreateRequest request) {
+
+        if (pacienteRepository.existsByDni(request.dni())) {
+            throw new ConflictException("El DNI ya está registrado.");
         }
 
-        // 2. guardar paciente
+        Paciente paciente = pacienteMapper.toEntity(request);
+        paciente.setFechaRegistro(LocalDate.now());
+
         Paciente pacienteGuardado = pacienteRepository.save(paciente);
 
-        // 3. crear historia clinica
-        HistoriaClinica historiaClinica = new HistoriaClinica();
-        historiaClinica.setPaciente(pacienteGuardado);
-        historiaClinica.setFechaCreacion(LocalDate.now());
+        HistoriaClinica hc = new HistoriaClinica();
+        hc.setPaciente(pacienteGuardado);
+        hc.setFechaCreacion(LocalDate.now());
 
-        historiaClinicaRepository.save(historiaClinica);
+        HistoriaClinica hcGuardada = historiaClinicaRepository.save(hc);
 
-        return pacienteGuardado;
+        // Para que el response tenga historiaClinicaId sin depender de que JPA sincronice:
+        pacienteGuardado.setHistoriaClinica(hcGuardada);
+
+        return pacienteMapper.toResponse(pacienteGuardado);
     }
 
 }
