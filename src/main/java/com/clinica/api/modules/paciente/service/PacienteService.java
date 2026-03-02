@@ -2,6 +2,7 @@ package com.clinica.api.modules.paciente.service;
 
 
 import com.clinica.api.web.dto.request.PacienteCreateRequest;
+import com.clinica.api.web.dto.request.PacienteUpdateRequest;
 import com.clinica.api.web.dto.response.PacienteResponse;
 import com.clinica.api.modules.historiaClinica.domain.entity.HistoriaClinica;
 import com.clinica.api.modules.paciente.domain.entity.Paciente;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class PacienteService {
@@ -52,4 +54,39 @@ public class PacienteService {
         return pacienteMapper.toResponse(pacienteGuardado);
     }
 
+    public PacienteResponse obtenerPorId(Long id) {
+
+        Paciente paciente = pacienteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
+
+        return pacienteMapper.toResponse(paciente);
+    }
+
+    public List<PacienteResponse> listar(){
+        return pacienteRepository.findAll()
+                .stream()
+                .map(pacienteMapper::toResponse)
+                .toList();
+    }
+
+    public PacienteResponse actualizar(Long id, PacienteUpdateRequest request) {
+
+        Paciente paciente = pacienteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
+
+        paciente.setNombres(request.nombres());
+        paciente.setApellidos(request.apellidos());
+        paciente.setDni(request.dni());
+
+        pacienteRepository.save(paciente);
+
+        return pacienteMapper.toResponse(paciente);
+    }
+
+    public void eliminar(Long id){
+        Paciente paciente = pacienteRepository.findById(id)
+                .orElseThrow(()-> new RuntimeException("Paciente no encontrado"));
+
+        pacienteRepository.delete(paciente);
+    }
 }

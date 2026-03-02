@@ -16,7 +16,7 @@ public record PacienteCreateRequest (
     @NotBlank @Size(min = 2, max = 80)
     String apellidos,
 
-    @NotBlank
+    @NotNull(message = "La fecha de nacimiento es obligatoria")
     @Past(message = "La fecha de nacimiento debe ser en el pasado")
     LocalDate fechaNacimiento,
 
@@ -32,9 +32,9 @@ public record PacienteCreateRequest (
     @NotBlank @Email @Size(max = 100)
     String email,
 
-    @NotBlank @Size(max = 500)
+    @Size(max = 500)
     String antecedentesMedicosUrl,
 
-    @NotBlank @Size(max = 500)
+    @Size(max = 500)
     String antecedentesOdontologicosUrl
     ){}

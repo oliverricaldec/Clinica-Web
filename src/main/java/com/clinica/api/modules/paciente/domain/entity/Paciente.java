@@ -49,6 +49,6 @@ public class Paciente {
     @Column(name = "antecedentes_odontologicos_url")
     private String antecOdon;
 
-    @OneToOne(mappedBy = "paciente",fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "paciente",cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
     private HistoriaClinica historiaClinica;
 }
