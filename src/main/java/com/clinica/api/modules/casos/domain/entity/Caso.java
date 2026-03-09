@@ -4,6 +4,7 @@ import com.clinica.api.modules.casos.domain.enums.EstadoCaso;
 import com.clinica.api.modules.historiaClinica.domain.entity.HistoriaClinica;
 import com.clinica.api.modules.registros.domain.entity.Registro;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +16,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
+@Builder
 @Table(
         name = "casos"
 )

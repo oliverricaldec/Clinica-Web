@@ -1,7 +1,10 @@
 package com.clinica.api.web.dto.response;
 
+import lombok.Builder;
+
 import java.time.LocalDate;
 
+@Builder
 public record PacienteResponse(
         Long id,
         String dni,

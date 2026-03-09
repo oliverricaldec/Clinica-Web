@@ -1,13 +1,15 @@
-package com.clinica.api.web.dto.request;
+package com.clinica.api.web.dto.update;
 
+
+import com.clinica.api.modules.casos.domain.enums.EstadoCaso;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
 
-public record CasoCreateRequest(
+public record CasoUpdateRequest(
 
         @NotBlank(message = "El diagnóstico es obligatorio")
-        @Size(min = 5, max = 500, message = "El diagnóstico debe tener entre 5 y 500 caracteres")
+        @Size(min = 5, max = 500)
         String diagnostico,
 
         @NotBlank(message = "El plan de tratamiento es obligatorio")
@@ -24,8 +26,11 @@ public record CasoCreateRequest(
         String odontogramaUrl,
 
         @NotNull(message = "El costo total es obligatorio")
-        @DecimalMin(value = "0.0", inclusive = false, message = "El costo debe ser mayor a 0")
+        @DecimalMin(value = "0.0", inclusive = false)
         @Digits(integer = 10, fraction = 2)
-        BigDecimal costoTotal
+        BigDecimal costoTotal,
+
+        @NotNull(message = "El estado es obligatorio")
+        EstadoCaso estado
 
 ) {}

@@ -2,7 +2,7 @@ package com.clinica.api.modules.paciente.service;
 
 
 import com.clinica.api.web.dto.request.PacienteCreateRequest;
-import com.clinica.api.web.dto.request.PacienteUpdateRequest;
+import com.clinica.api.web.dto.update.PacienteUpdateRequest;
 import com.clinica.api.web.dto.response.PacienteResponse;
 import com.clinica.api.modules.historiaClinica.domain.entity.HistoriaClinica;
 import com.clinica.api.modules.paciente.domain.entity.Paciente;
