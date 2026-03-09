@@ -2,7 +2,7 @@ package com.clinica.api.modules.paciente.controller;
 
 import com.clinica.api.modules.paciente.service.PacienteService;
 import com.clinica.api.web.dto.request.PacienteCreateRequest;
-import com.clinica.api.web.dto.request.PacienteUpdateRequest;
+import com.clinica.api.web.dto.update.PacienteUpdateRequest;
 import com.clinica.api.web.dto.response.PacienteResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -46,7 +46,7 @@ public class PacienteController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<PacienteResponse> eliminar(@PathVariable Long id){
+    public ResponseEntity<Void> eliminar(@PathVariable Long id){
         pacienteService.eliminar(id);
         return ResponseEntity.noContent().build();
     }

@@ -2,6 +2,7 @@ package com.clinica.api.modules.paciente.domain.entity;
 
 import com.clinica.api.modules.historiaClinica.domain.entity.HistoriaClinica;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,6 +11,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Entity
+
 @Table(
         name = "pacientes",
         uniqueConstraints = {@UniqueConstraint(columnNames = "dni")}

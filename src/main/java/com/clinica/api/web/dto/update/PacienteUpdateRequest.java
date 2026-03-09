@@ -1,4 +1,4 @@
-package com.clinica.api.web.dto.request;
+package com.clinica.api.web.dto.update;
 
 public record PacienteUpdateRequest (
     String nombres,
