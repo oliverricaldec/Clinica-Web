@@ -11,6 +11,7 @@ import com.clinica.api.web.dto.response.RegistroResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -24,10 +25,11 @@ public class RegistroService {
     public RegistroResponse crear(Long casoId, RegistroCreateRequest request) {
 
         Caso caso = casoRepository.findById(casoId)
-                .orElseThrow(() -> new RuntimeException("Caso no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Caso no encontrado"+casoId));
 
         Registro registro = registroMapper.toEntity(request);
         registro.setCaso(caso);
+        registro.setFechaAtencion(LocalDate.now());
         Registro guardado = registroRepository.save(registro);
 
         return registroMapper.toResponse(guardado);
@@ -36,7 +38,7 @@ public class RegistroService {
     public RegistroResponse actualizar(Long id, RegistroUpdateRequest request) {
 
         Registro registro = registroRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Registro no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Registro no encontrado"+id));
 
         registroMapper.updateEntity(registro, request);
 
@@ -48,7 +50,7 @@ public class RegistroService {
     public void eliminar(Long id) {
 
         Registro registro = registroRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Registro no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Registro no encontrado"+id));
 
         registroRepository.delete(registro);
     }
@@ -56,7 +58,7 @@ public class RegistroService {
     public RegistroResponse obtenerPorId(Long id) {
 
         Registro registro = registroRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Registro no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Registro no encontrado"+id));
 
         return registroMapper.toResponse(registro);
     }

@@ -4,9 +4,7 @@ import com.clinica.api.modules.casos.domain.enums.EstadoCaso;
 import com.clinica.api.modules.historiaClinica.domain.entity.HistoriaClinica;
 import com.clinica.api.modules.registros.domain.entity.Registro;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -16,6 +14,8 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @Table(
         name = "casos"
@@ -50,7 +50,7 @@ public class Caso {
     @Column(nullable = false, name = "fecha_inicio")
     private LocalDate fechaInicio;
 
-    @Column(nullable = false, name = "fecha_fin")
+    @Column(nullable = true, name = "fecha_fin")
     private LocalDate fechaFin;
 
     @Enumerated(EnumType.STRING)

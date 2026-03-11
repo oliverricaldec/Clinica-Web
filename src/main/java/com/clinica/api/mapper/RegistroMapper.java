@@ -29,6 +29,8 @@ public class RegistroMapper {
                 .doctorResponsable(registro.getDoctor())
                 .montoAbonado(registro.getAbono())
                 .observaciones(registro.getObservaciones())
+                .fechaAtencion(registro.getFechaAtencion())
+                .idCaso(registro.getCaso().getId())
                 .build();
     }
 

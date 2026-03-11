@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface RegistroRepository extends JpaRepository<Registro, Long> {
 
-    List<Registro> findByCasoId(long casoId);
+    List<Registro> findByCasoId(Long casoId);
 }

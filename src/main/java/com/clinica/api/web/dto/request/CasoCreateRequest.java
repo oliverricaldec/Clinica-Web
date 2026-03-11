@@ -6,6 +6,10 @@ import java.math.BigDecimal;
 
 public record CasoCreateRequest(
 
+        @NotBlank(message = "Debe asiganr un nombre al caso")
+        @Size(max = 120)
+        String nombreCaso,
+
         @NotBlank(message = "El diagnóstico es obligatorio")
         @Size(min = 5, max = 500, message = "El diagnóstico debe tener entre 5 y 500 caracteres")
         String diagnostico,
