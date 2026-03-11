@@ -2,9 +2,7 @@ package com.clinica.api.modules.registros.domain.entity;
 
 import com.clinica.api.modules.casos.domain.entity.Caso;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -12,6 +10,8 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
 @Table(
         name = "registros"

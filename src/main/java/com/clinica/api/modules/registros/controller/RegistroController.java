@@ -21,7 +21,7 @@ public class RegistroController {
 
     public RegistroController(RegistroService registroService) {this.registroService = registroService;}
 
-    @PostMapping("/casos/{casoId}")
+    @PostMapping("/casos/{casoId}/registros")
     public ResponseEntity<RegistroResponse> crear( @PathVariable Long casoId, @Valid @RequestBody RegistroCreateRequest request){
         RegistroResponse created = registroService.crear(casoId,request);
         return ResponseEntity.created(URI.create("/api/registros/" + created.id())).body(created);
@@ -34,8 +34,8 @@ public class RegistroController {
     }
 
     //averiguar porque aqui defrente va al return y en otro crea un objeto y luego lo mete a "ok"
-    @GetMapping
-    public ResponseEntity<List<RegistroResponse>> listarPorCaso(Long casoId){
+    @GetMapping("/casos/{casoId}/registros")
+    public ResponseEntity<List<RegistroResponse>> listarPorCaso(@PathVariable Long casoId){
         return ResponseEntity.ok(registroService.listarPorCaso(casoId));
     }
 

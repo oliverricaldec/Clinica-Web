@@ -8,29 +8,28 @@ import java.math.BigDecimal;
 
 public record CasoUpdateRequest(
 
-        @NotBlank(message = "El diagnóstico es obligatorio")
-        @Size(min = 5, max = 500)
+        @Size(max = 120, message = "Maximo 120 caracteres")
+        String nombreCaso,
+
+        @Size(min = 5, max = 500, message = "Maximo 500 caracteres y minimo 5")
         String diagnostico,
 
-        @NotBlank(message = "El plan de tratamiento es obligatorio")
-        @Size(min = 5, max = 1000)
+        @Size(min = 5, max = 1000, message = "Maximo 1000 caracteres y minimo 5")
         String planTratamiento,
 
-        @Size(max = 1000)
+        @Size(max = 1000, message = "Maximo 1000 caracteres")
         String examenAuxiliar,
 
-        @Size(max = 500)
+        @Size(max = 500, message = "Maximo 500 caracteres")
         String proformaUrl,
 
-        @Size(max = 500)
+        @Size(max = 500, message = "Maximo 500 caracteres")
         String odontogramaUrl,
 
-        @NotNull(message = "El costo total es obligatorio")
-        @DecimalMin(value = "0.0", inclusive = false)
+        @DecimalMin(value = "0.0", message = "No numeros negativos")
         @Digits(integer = 10, fraction = 2)
         BigDecimal costoTotal,
 
-        @NotNull(message = "El estado es obligatorio")
         EstadoCaso estado
 
 ) {}
