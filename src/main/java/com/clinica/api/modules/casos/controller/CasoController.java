@@ -6,6 +6,8 @@ import com.clinica.api.web.dto.response.CasoResponse;
 import com.clinica.api.web.dto.update.CasoUpdateRequest;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
@@ -36,8 +38,8 @@ public class CasoController {
     }
 
     @GetMapping("/historiasClinicas/{HCid}")
-    public ResponseEntity<List<CasoResponse>> listarPorHistoriaClinica(@PathVariable Long HCid){
-        return ResponseEntity.ok(casoService.listarPorHistoriaClinica(HCid));
+    public ResponseEntity<Page<CasoResponse>> listarPorHistoriaClinica(@PathVariable Long HCid, Pageable pageable){
+        return ResponseEntity.ok(casoService.listarPorHistoriaClinica(HCid, pageable));
     }
 
     @PutMapping("/{id}")

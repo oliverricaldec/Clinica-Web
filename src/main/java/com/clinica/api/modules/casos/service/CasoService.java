@@ -1,5 +1,6 @@
 package com.clinica.api.modules.casos.service;
 
+import com.clinica.api.exception.ResourceNotFoundException;
 import com.clinica.api.mapper.CasoMapper;
 import com.clinica.api.modules.casos.domain.entity.Caso;
 import com.clinica.api.modules.casos.domain.enums.EstadoCaso;
@@ -10,10 +11,11 @@ import com.clinica.api.web.dto.request.CasoCreateRequest;
 import com.clinica.api.web.dto.response.CasoResponse;
 import com.clinica.api.web.dto.update.CasoUpdateRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +28,7 @@ public class CasoService {
     public CasoResponse crear(Long HCid, CasoCreateRequest request){
 
         HistoriaClinica historiaClinica = historiaClinicaRepository.findById(HCid)
-                .orElseThrow(()-> new RuntimeException("Historia clinica no encontrada"+HCid));
+                .orElseThrow(()-> new ResourceNotFoundException("Historia clinica no encontrada"+HCid));
 
         Caso caso = casoMapper.toEntity(request);
         caso.setHistoriaClinica(historiaClinica);
@@ -40,7 +42,7 @@ public class CasoService {
     public CasoResponse actualizar(Long id, CasoUpdateRequest request){
 
         Caso caso = casoRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Caso no encontrado"+id));
+                .orElseThrow(()-> new ResourceNotFoundException("Caso no encontrado"+id));
 
         casoMapper.updateEntity(caso, request);
         Caso actualizado = casoRepository.save(caso);
@@ -49,22 +51,20 @@ public class CasoService {
 
     public void eliminar(Long id){
         Caso caso = casoRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Caso no encontrado"+id));
+                .orElseThrow(()-> new ResourceNotFoundException("Caso no encontrado"+id));
 
         casoRepository.delete(caso);
     }
 
     public CasoResponse obtenerPorId(Long id){
         Caso caso = casoRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Caso no encontrado"+id));
+                .orElseThrow(()-> new ResourceNotFoundException("Caso no encontrado"+id));
 
         return casoMapper.toResponse(caso);
     }
 
-    public List<CasoResponse> listarPorHistoriaClinica(Long HCid){
-        return casoRepository.findByHistoriaClinicaId(HCid)
-                .stream()
-                .map(casoMapper::toResponse)
-                .toList();
+    public Page<CasoResponse> listarPorHistoriaClinica(Long HCid, Pageable pageable){
+        return casoRepository.findByHistoriaClinicaId(HCid, pageable)
+                .map(casoMapper::toResponse);
     }
 }

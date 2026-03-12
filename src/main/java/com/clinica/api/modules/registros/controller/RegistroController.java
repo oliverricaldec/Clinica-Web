@@ -6,6 +6,8 @@ import com.clinica.api.web.dto.response.RegistroResponse;
 import com.clinica.api.web.dto.update.RegistroUpdateRequest;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,8 +37,8 @@ public class RegistroController {
 
     //averiguar porque aqui defrente va al return y en otro crea un objeto y luego lo mete a "ok"
     @GetMapping("/casos/{casoId}/registros")
-    public ResponseEntity<List<RegistroResponse>> listarPorCaso(@PathVariable Long casoId){
-        return ResponseEntity.ok(registroService.listarPorCaso(casoId));
+    public ResponseEntity<Page<RegistroResponse>> listarPorCaso(@PathVariable Long casoId, Pageable pageable){
+        return ResponseEntity.ok(registroService.listarPorCaso(casoId, pageable));
     }
 
     @PutMapping("/{id}")
