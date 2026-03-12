@@ -1,5 +1,6 @@
 package com.clinica.api.modules.registros.service;
 
+import com.clinica.api.exception.ResourceNotFoundException;
 import com.clinica.api.modules.casos.domain.entity.Caso;
 import com.clinica.api.modules.registros.domain.entity.Registro;
 import com.clinica.api.modules.casos.repository.CasoRepository;
@@ -9,6 +10,8 @@ import com.clinica.api.web.dto.request.RegistroCreateRequest;
 import com.clinica.api.web.dto.update.RegistroUpdateRequest;
 import com.clinica.api.web.dto.response.RegistroResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -25,7 +28,7 @@ public class RegistroService {
     public RegistroResponse crear(Long casoId, RegistroCreateRequest request) {
 
         Caso caso = casoRepository.findById(casoId)
-                .orElseThrow(() -> new RuntimeException("Caso no encontrado"+casoId));
+                .orElseThrow(() -> new ResourceNotFoundException("Caso no encontrado"+casoId));
 
         Registro registro = registroMapper.toEntity(request);
         registro.setCaso(caso);
@@ -38,7 +41,7 @@ public class RegistroService {
     public RegistroResponse actualizar(Long id, RegistroUpdateRequest request) {
 
         Registro registro = registroRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Registro no encontrado"+id));
+                .orElseThrow(() -> new ResourceNotFoundException("Registro no encontrado"+id));
 
         registroMapper.updateEntity(registro, request);
 
@@ -50,7 +53,7 @@ public class RegistroService {
     public void eliminar(Long id) {
 
         Registro registro = registroRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Registro no encontrado"+id));
+                .orElseThrow(() -> new ResourceNotFoundException("Registro no encontrado"+id));
 
         registroRepository.delete(registro);
     }
@@ -58,16 +61,14 @@ public class RegistroService {
     public RegistroResponse obtenerPorId(Long id) {
 
         Registro registro = registroRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Registro no encontrado"+id));
+                .orElseThrow(() -> new ResourceNotFoundException("Registro no encontrado"+id));
 
         return registroMapper.toResponse(registro);
     }
 
-    public List<RegistroResponse> listarPorCaso(Long casoId){
-        return registroRepository.findByCasoId(casoId)
-                .stream()
-                .map(registroMapper::toResponse)
-                .toList();
+    public Page<RegistroResponse> listarPorCaso(Long casoId, Pageable pageable){
+        return registroRepository.findByCasoId(casoId, pageable)
+                .map(registroMapper::toResponse);
     }
 
 }

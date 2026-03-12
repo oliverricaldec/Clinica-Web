@@ -6,11 +6,13 @@ import com.clinica.api.web.dto.update.PacienteUpdateRequest;
 import com.clinica.api.web.dto.response.PacienteResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
 import java.net.URI;
-import java.util.List;
 
 @Tag(name = "Pacientes", description = "Operaciones relacionadas a pacientes")
 @RestController
@@ -36,8 +38,8 @@ public class PacienteController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PacienteResponse>> listar() {
-        return ResponseEntity.ok(pacienteService.listar());
+    public ResponseEntity<Page<PacienteResponse>> listar(Pageable pageable) {
+        return ResponseEntity.ok(pacienteService.listar(pageable));
     }
 
     @PutMapping("/{id}")

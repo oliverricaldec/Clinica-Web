@@ -36,6 +36,26 @@ public class GlobalExceptionHandler {
         ));
     }
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<?> handleNotFound(ResourceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiError(
+                Instant.now().toString(),
+                404,
+                ex.getMessage(),
+                null
+        ));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleGeneral(Exception ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiError(
+                Instant.now().toString(),
+                500,
+                ex.getMessage(),
+                ex.getClass().getSimpleName()
+        ));
+    }
+
     public record ApiError(String timestamp, int status, String message, Object details) {}
     public record FieldErrorResponse(String field, String message) {}
 }
