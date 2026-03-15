@@ -3,6 +3,7 @@ package com.clinica.api.modules.paciente.service;
 
 import com.clinica.api.exception.ResourceNotFoundException;
 import com.clinica.api.web.dto.request.PacienteCreateRequest;
+import com.clinica.api.web.dto.response.PageResponse;
 import com.clinica.api.web.dto.update.PacienteUpdateRequest;
 import com.clinica.api.web.dto.response.PacienteResponse;
 import com.clinica.api.modules.historiaClinica.domain.entity.HistoriaClinica;
@@ -66,9 +67,19 @@ public class PacienteService {
         return pacienteMapper.toResponse(paciente);
     }
 
-    public Page<PacienteResponse> listar(Pageable pageable){
-        return pacienteRepository.findAll(pageable)
+    public PageResponse<PacienteResponse> listar(Pageable pageable) {
+
+        Page<PacienteResponse> page = pacienteRepository
+                .findAll(pageable)
                 .map(pacienteMapper::toResponse);
+
+        return new PageResponse<>(
+                page.getContent(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
     }
 
     public PacienteResponse actualizar(Long id, PacienteUpdateRequest request) {
@@ -91,4 +102,13 @@ public class PacienteService {
 
         pacienteRepository.delete(paciente);
     }
+
+    public PacienteResponse buscarPorDNI(String DNI){
+        Paciente paciente = pacienteRepository.findByDni(DNI)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente con ese DNI no encontrado"));
+
+        return pacienteMapper.toResponse(paciente);
+
+    }
+
 }

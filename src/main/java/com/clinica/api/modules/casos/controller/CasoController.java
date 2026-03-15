@@ -3,6 +3,7 @@ package com.clinica.api.modules.casos.controller;
 import com.clinica.api.modules.casos.service.CasoService;
 import com.clinica.api.web.dto.request.CasoCreateRequest;
 import com.clinica.api.web.dto.response.CasoResponse;
+import com.clinica.api.web.dto.response.PageResponse;
 import com.clinica.api.web.dto.update.CasoUpdateRequest;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -38,7 +39,7 @@ public class CasoController {
     }
 
     @GetMapping("/historiasClinicas/{HCid}")
-    public ResponseEntity<Page<CasoResponse>> listarPorHistoriaClinica(@PathVariable Long HCid, Pageable pageable){
+    public ResponseEntity<PageResponse<CasoResponse>> listarPorHistoriaClinica(@PathVariable Long HCid, Pageable pageable){
         return ResponseEntity.ok(casoService.listarPorHistoriaClinica(HCid, pageable));
     }
 

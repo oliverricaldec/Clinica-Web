@@ -7,6 +7,7 @@ import com.clinica.api.modules.casos.repository.CasoRepository;
 import com.clinica.api.modules.registros.repository.RegistroRepository;
 import com.clinica.api.mapper.RegistroMapper;
 import com.clinica.api.web.dto.request.RegistroCreateRequest;
+import com.clinica.api.web.dto.response.PageResponse;
 import com.clinica.api.web.dto.update.RegistroUpdateRequest;
 import com.clinica.api.web.dto.response.RegistroResponse;
 import lombok.RequiredArgsConstructor;
@@ -66,9 +67,19 @@ public class RegistroService {
         return registroMapper.toResponse(registro);
     }
 
-    public Page<RegistroResponse> listarPorCaso(Long casoId, Pageable pageable){
-        return registroRepository.findByCasoId(casoId, pageable)
+    public PageResponse<RegistroResponse> listarPorCaso(Long casoId, Pageable pageable){
+
+        Page<RegistroResponse> page = registroRepository
+                .findAll(pageable)
                 .map(registroMapper::toResponse);
+
+        return new PageResponse<>(
+                page.getContent(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
     }
 
 }

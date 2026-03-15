@@ -2,11 +2,11 @@ package com.clinica.api.modules.paciente.controller;
 
 import com.clinica.api.modules.paciente.service.PacienteService;
 import com.clinica.api.web.dto.request.PacienteCreateRequest;
+import com.clinica.api.web.dto.response.PageResponse;
 import com.clinica.api.web.dto.update.PacienteUpdateRequest;
 import com.clinica.api.web.dto.response.PacienteResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,7 +38,7 @@ public class PacienteController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<PacienteResponse>> listar(Pageable pageable) {
+    public ResponseEntity<PageResponse<PacienteResponse>> listar(Pageable pageable) {
         return ResponseEntity.ok(pacienteService.listar(pageable));
     }
 
@@ -51,5 +51,10 @@ public class PacienteController {
     public ResponseEntity<Void> eliminar(@PathVariable Long id){
         pacienteService.eliminar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/dni/{dni}")
+    public ResponseEntity<PacienteResponse> buscarPorDNI(@PathVariable String dni){
+        return ResponseEntity.ok(pacienteService.buscarPorDNI(dni));
     }
 }
