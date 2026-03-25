@@ -32,6 +32,8 @@ public record PacienteCreateRequest (
     @NotBlank @Email @Size(max = 100)
     String email,
 
+    LocalDate fechaRegistro,
+
     @Size(max = 500)
     String antecedentesMedicosUrl,
 

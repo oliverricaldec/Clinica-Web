@@ -9,6 +9,7 @@ import com.clinica.api.modules.historiaClinica.domain.entity.HistoriaClinica;
 import com.clinica.api.modules.historiaClinica.repository.HistoriaClinicaRepository;
 import com.clinica.api.web.dto.request.CasoCreateRequest;
 import com.clinica.api.web.dto.response.CasoResponse;
+import com.clinica.api.web.dto.response.PageResponse;
 import com.clinica.api.web.dto.update.CasoUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -33,7 +34,7 @@ public class CasoService {
         Caso caso = casoMapper.toEntity(request);
         caso.setHistoriaClinica(historiaClinica);
         caso.setEstado(EstadoCaso.ACTIVO);
-        caso.setFechaInicio(LocalDate.now());
+
         Caso guardado = casoRepository.save(caso);
 
         return casoMapper.toResponse(guardado);
@@ -63,8 +64,18 @@ public class CasoService {
         return casoMapper.toResponse(caso);
     }
 
-    public Page<CasoResponse> listarPorHistoriaClinica(Long HCid, Pageable pageable){
-        return casoRepository.findByHistoriaClinicaId(HCid, pageable)
+    public PageResponse<CasoResponse> listarPorHistoriaClinica(Long HCid, Pageable pageable){
+
+        Page<CasoResponse> page = casoRepository
+                .findAll(pageable)
                 .map(casoMapper::toResponse);
+
+        return new PageResponse<>(
+                page.getContent(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
     }
 }

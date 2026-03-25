@@ -13,11 +13,13 @@ public class RegistroMapper {
     // lo que recibe el backend es un archivo DTO que luego lo convertira en un objeto con esta funcion
     public Registro toEntity(RegistroCreateRequest request){
         return Registro.builder()
+                .fechaAtencion(request.fechaAtencion())
                 .evolucion(request.evolucion())
                 .proceRealizado(request.procedimientoRealizado())
                 .doctor(request.doctorResponsable())
                 .abono(request.montoAbonado())
                 .observaciones(request.observaciones())
+                .fechaAtencion(request.fechaAtencion())
                 .build();
     }
 
@@ -35,11 +37,24 @@ public class RegistroMapper {
     }
 
     public void updateEntity(Registro registro, RegistroUpdateRequest request){
-        registro.setEvolucion(request.evolucion());
-        registro.setProceRealizado(request.procedimientoRealizado());
-        registro.setDoctor(request.doctorResponsable());
-        registro.setAbono(request.montoAbonado());
-        registro.setObservaciones(request.observaciones());
+
+        if (request.evolucion() != null)
+            registro.setEvolucion(request.evolucion());
+
+        if (request.procedimientoRealizado() != null)
+            registro.setProceRealizado(request.procedimientoRealizado());
+
+        if (request.doctorResponsable() != null)
+            registro.setDoctor(request.doctorResponsable());
+
+        if (request.montoAbonado() != null)
+            registro.setAbono(request.montoAbonado());
+
+        if (request.observaciones() != null)
+            registro.setObservaciones(request.observaciones());
+
+        if (request.fechaAtencion() != null)
+            registro.setFechaAtencion(request.fechaAtencion());
     }
 
 }

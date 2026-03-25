@@ -2,6 +2,7 @@ package com.clinica.api.modules.registros.controller;
 
 import com.clinica.api.modules.registros.service.RegistroService;
 import com.clinica.api.web.dto.request.RegistroCreateRequest;
+import com.clinica.api.web.dto.response.PageResponse;
 import com.clinica.api.web.dto.response.RegistroResponse;
 import com.clinica.api.web.dto.update.RegistroUpdateRequest;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.Console;
 import java.net.URI;
 import java.util.List;
 
@@ -24,9 +26,12 @@ public class RegistroController {
     public RegistroController(RegistroService registroService) {this.registroService = registroService;}
 
     @PostMapping("/casos/{casoId}/registros")
-    public ResponseEntity<RegistroResponse> crear( @PathVariable Long casoId, @Valid @RequestBody RegistroCreateRequest request){
+    public ResponseEntity<RegistroResponse> crear(
+            @PathVariable Long casoId,
+            @RequestBody RegistroCreateRequest request){
+        System.out.println(request); // 👈 AGREGA ESTO
         RegistroResponse created = registroService.crear(casoId,request);
-        return ResponseEntity.created(URI.create("/api/registros/" + created.id())).body(created);
+        return ResponseEntity.ok(created);
     }
 
     @GetMapping("/{id}")
@@ -36,13 +41,17 @@ public class RegistroController {
     }
 
     //averiguar porque aqui defrente va al return y en otro crea un objeto y luego lo mete a "ok"
-    @GetMapping("/casos/{casoId}/registros")
-    public ResponseEntity<Page<RegistroResponse>> listarPorCaso(@PathVariable Long casoId, Pageable pageable){
+    @GetMapping("/caso/{casoId}")
+    public ResponseEntity<PageResponse<RegistroResponse>> listarPorCaso(
+            @PathVariable Long casoId,
+            Pageable pageable
+    ){
         return ResponseEntity.ok(registroService.listarPorCaso(casoId, pageable));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<RegistroResponse> actualizar(@PathVariable Long id,@Valid @RequestBody RegistroUpdateRequest request){
+        System.out.println(request);
         return ResponseEntity.ok(registroService.actualizar(id,request));
     }
 

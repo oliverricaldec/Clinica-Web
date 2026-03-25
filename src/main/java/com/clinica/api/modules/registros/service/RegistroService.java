@@ -7,6 +7,7 @@ import com.clinica.api.modules.casos.repository.CasoRepository;
 import com.clinica.api.modules.registros.repository.RegistroRepository;
 import com.clinica.api.mapper.RegistroMapper;
 import com.clinica.api.web.dto.request.RegistroCreateRequest;
+import com.clinica.api.web.dto.response.PageResponse;
 import com.clinica.api.web.dto.update.RegistroUpdateRequest;
 import com.clinica.api.web.dto.response.RegistroResponse;
 import lombok.RequiredArgsConstructor;
@@ -32,13 +33,15 @@ public class RegistroService {
 
         Registro registro = registroMapper.toEntity(request);
         registro.setCaso(caso);
-        registro.setFechaAtencion(LocalDate.now());
+
         Registro guardado = registroRepository.save(registro);
 
         return registroMapper.toResponse(guardado);
     }
 
     public RegistroResponse actualizar(Long id, RegistroUpdateRequest request) {
+
+
 
         Registro registro = registroRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Registro no encontrado"+id));
@@ -66,9 +69,19 @@ public class RegistroService {
         return registroMapper.toResponse(registro);
     }
 
-    public Page<RegistroResponse> listarPorCaso(Long casoId, Pageable pageable){
-        return registroRepository.findByCasoId(casoId, pageable)
+    public PageResponse<RegistroResponse> listarPorCaso(Long casoId, Pageable pageable){
+
+        Page<RegistroResponse> page = registroRepository
+                .findByCasoId(casoId, pageable) // ✅ BIEN
                 .map(registroMapper::toResponse);
+
+        return new PageResponse<>(
+                page.getContent(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
     }
 
 }

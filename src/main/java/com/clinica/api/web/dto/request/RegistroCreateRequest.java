@@ -3,6 +3,7 @@ package com.clinica.api.web.dto.request;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public record RegistroCreateRequest(
 
@@ -20,8 +21,11 @@ public record RegistroCreateRequest(
 
         @NotNull
         @PositiveOrZero
-        @Digits(integer = 5,fraction = 2)
+        @Digits(integer = 8,fraction = 2)
         BigDecimal montoAbonado,
+
+        @NotNull
+        LocalDate fechaAtencion,
 
         String observaciones
 ) {}

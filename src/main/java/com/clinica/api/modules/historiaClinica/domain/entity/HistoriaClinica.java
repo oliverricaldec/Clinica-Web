@@ -34,6 +34,6 @@ public class HistoriaClinica {
     )
     private Paciente paciente;
 
-    @OneToMany(mappedBy = "historiaClinica",fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "historiaClinica",cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Caso> casos = new ArrayList<>();
 }

@@ -3,6 +3,7 @@ package com.clinica.api.web.dto.request;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public record CasoCreateRequest(
 
@@ -30,6 +31,9 @@ public record CasoCreateRequest(
         @NotNull(message = "El costo total es obligatorio")
         @DecimalMin(value = "0.0", inclusive = false, message = "El costo debe ser mayor a 0")
         @Digits(integer = 10, fraction = 2)
-        BigDecimal costoTotal
+        BigDecimal costoTotal,
+
+        @NotNull
+        LocalDate fechaInicio
 
 ) {}

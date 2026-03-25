@@ -5,6 +5,7 @@ import com.clinica.api.modules.casos.domain.enums.EstadoCaso;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public record CasoUpdateRequest(
 
@@ -29,6 +30,10 @@ public record CasoUpdateRequest(
         @DecimalMin(value = "0.0", message = "No numeros negativos")
         @Digits(integer = 10, fraction = 2)
         BigDecimal costoTotal,
+
+        LocalDate fechaInicio,
+
+        LocalDate fechaFin,
 
         EstadoCaso estado
 
