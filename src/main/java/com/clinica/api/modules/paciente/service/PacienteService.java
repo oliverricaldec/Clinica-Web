@@ -43,7 +43,6 @@ public class PacienteService {
         }
 
         Paciente paciente = pacienteMapper.toEntity(request);
-        paciente.setFechaRegistro(LocalDate.now());
 
         Paciente pacienteGuardado = pacienteRepository.save(paciente);
 
@@ -87,13 +86,10 @@ public class PacienteService {
         Paciente paciente = pacienteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
 
-        paciente.setNombres(request.nombres());
-        paciente.setApellidos(request.apellidos());
-        paciente.setDni(request.dni());
+        pacienteMapper.updateEntity(paciente,request);
+        Paciente actualizado = pacienteRepository.save(paciente);
 
-        pacienteRepository.save(paciente);
-
-        return pacienteMapper.toResponse(paciente);
+        return pacienteMapper.toResponse(actualizado);
     }
 
     public void eliminar(Long id){

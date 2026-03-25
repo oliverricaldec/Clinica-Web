@@ -18,6 +18,7 @@ public class CasoMapper {
                 .proforma(request.proformaUrl())
                 .odontograma(request.odontogramaUrl())
                 .costoTotal(request.costoTotal())
+                .fechaInicio(request.fechaInicio())
                 .build();
     }
 
@@ -39,14 +40,35 @@ public class CasoMapper {
     }
 
     public void updateEntity(Caso caso, CasoUpdateRequest request){
-        caso.setNombreCaso(request.nombreCaso());
-        caso.setDiagnostico(request.diagnostico());
-        caso.setPlanTratamiento(request.planTratamiento());
-        caso.setExamenAuxiliar(request.examenAuxiliar());
-        caso.setProforma(request.proformaUrl());
-        caso.setOdontograma(request.odontogramaUrl());
-        caso.setCostoTotal(request.costoTotal());
-        caso.setEstado(request.estado());
 
+        if (request.nombreCaso() != null)
+            caso.setNombreCaso(request.nombreCaso());
+
+        if (request.diagnostico() != null)
+            caso.setDiagnostico(request.diagnostico());
+
+        if (request.planTratamiento() != null)
+            caso.setPlanTratamiento(request.planTratamiento());
+
+        if (request.examenAuxiliar() != null)
+            caso.setExamenAuxiliar(request.examenAuxiliar());
+
+        if (request.proformaUrl() != null)
+            caso.setProforma(request.proformaUrl());
+
+        if (request.odontogramaUrl() != null)
+            caso.setOdontograma(request.odontogramaUrl());
+
+        if (request.costoTotal() != null)
+            caso.setCostoTotal(request.costoTotal());
+
+        if (request.fechaInicio() != null)
+            caso.setFechaInicio(request.fechaInicio());
+
+        if (request.fechaFin() != null)
+            caso.setFechaFin(request.fechaFin());
+
+        if (request.estado() != null)
+            caso.setEstado(request.estado());
     }
 }

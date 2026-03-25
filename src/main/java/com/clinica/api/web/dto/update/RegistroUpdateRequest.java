@@ -5,6 +5,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public record RegistroUpdateRequest (
 
@@ -15,8 +16,10 @@ public record RegistroUpdateRequest (
         @Size(max = 40, message = "Maximo 40 caracteres")
         String doctorResponsable,
         @PositiveOrZero(message = "No puede ser negativo")
-        @Digits(integer = 5,fraction = 2)
+        @Digits(integer = 8,fraction = 2)
         BigDecimal montoAbonado,
+
+        LocalDate fechaAtencion,
 
         String observaciones
 ) {}

@@ -33,13 +33,15 @@ public class RegistroService {
 
         Registro registro = registroMapper.toEntity(request);
         registro.setCaso(caso);
-        registro.setFechaAtencion(LocalDate.now());
+
         Registro guardado = registroRepository.save(registro);
 
         return registroMapper.toResponse(guardado);
     }
 
     public RegistroResponse actualizar(Long id, RegistroUpdateRequest request) {
+
+
 
         Registro registro = registroRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Registro no encontrado"+id));
@@ -70,7 +72,7 @@ public class RegistroService {
     public PageResponse<RegistroResponse> listarPorCaso(Long casoId, Pageable pageable){
 
         Page<RegistroResponse> page = registroRepository
-                .findAll(pageable)
+                .findByCasoId(casoId, pageable) // ✅ BIEN
                 .map(registroMapper::toResponse);
 
         return new PageResponse<>(

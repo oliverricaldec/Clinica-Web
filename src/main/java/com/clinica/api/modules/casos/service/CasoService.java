@@ -34,7 +34,7 @@ public class CasoService {
         Caso caso = casoMapper.toEntity(request);
         caso.setHistoriaClinica(historiaClinica);
         caso.setEstado(EstadoCaso.ACTIVO);
-        caso.setFechaInicio(LocalDate.now());
+
         Caso guardado = casoRepository.save(caso);
 
         return casoMapper.toResponse(guardado);
