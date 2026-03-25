@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import Sidebar from "../components/Sidebar";
 
 const RegistroDetalle = () => {
   const { id } = useParams();
@@ -8,199 +9,162 @@ const RegistroDetalle = () => {
 
   const [registro, setRegistro] = useState(null);
   const [loading, setLoading] = useState(true);
-
   const [editMode, setEditMode] = useState(false);
 
-  // ================= STATES =================
-  const [fechaAtencion, setFechaAtencion] = useState("");
-  const [evolucion, setEvolucion] = useState("");
-  const [procedimiento, setProcedimiento] = useState("");
-  const [doctor, setDoctor] = useState("");
-  const [abono, setAbono] = useState("");
-  const [observaciones, setObservaciones] = useState("");
+  const [form, setForm] = useState({
+    fechaAtencion: "", evolucion: "", procedimiento: "",
+    doctor: "", abono: "", observaciones: "",
+  });
 
   const token = localStorage.getItem("token");
 
-  // ================= FORMATO FECHA =================
   const formatFecha = (fecha) => {
     if (!fecha) return "Sin fecha";
     const [y, m, d] = fecha.split("-");
     return `${d}/${m}/${y}`;
   };
 
-  // ================= FETCH =================
   const fetchRegistro = async () => {
     try {
       setLoading(true);
-
-      const res = await axios.get(
-        `http://localhost:8080/api/registros/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
+      const res = await axios.get(`http://localhost:8080/api/registros/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = res.data;
-
       setRegistro(data);
-
-      // cargar en form
-      setFechaAtencion(data.fechaAtencion || "");
-      setEvolucion(data.evolucion || "");
-      setProcedimiento(data.procedimientoRealizado || "");
-      setDoctor(data.doctorResponsable || "");
-      setAbono(data.montoAbonado || "");
-      setObservaciones(data.observaciones || "");
-
+      setForm({
+        fechaAtencion: data.fechaAtencion || "",
+        evolucion: data.evolucion || "",
+        procedimiento: data.procedimientoRealizado || "",
+        doctor: data.doctorResponsable || "",
+        abono: data.montoAbonado || "",
+        observaciones: data.observaciones || "",
+      });
     } catch (error) {
-      console.error("Error cargando registro:", error.response?.data || error);
+      console.error("Error cargando registro:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // ================= UPDATE =================
   const handleUpdate = async () => {
     try {
-      if (!evolucion.trim()) {
-        alert("La evolución es obligatoria");
-        return;
-      }
-
+      if (!form.evolucion.trim()) { alert("La evolución es obligatoria"); return; }
       await axios.put(
         `http://localhost:8080/api/registros/${id}`,
         {
-          fechaAtencion,
-          evolucion,
-          procedimientoRealizado: procedimiento,
-          doctorResponsable: doctor,
-          montoAbonado: Number(abono),
-          observaciones,
+          fechaAtencion: form.fechaAtencion,
+          evolucion: form.evolucion,
+          procedimientoRealizado: form.procedimiento,
+          doctorResponsable: form.doctor,
+          montoAbonado: Number(form.abono),
+          observaciones: form.observaciones,
         },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
       setEditMode(false);
       fetchRegistro();
-
     } catch (error) {
-      console.error("Error actualizando registro:", error.response?.data || error);
+      console.error("Error actualizando registro:", error);
     }
   };
 
-  useEffect(() => {
-    if (id) fetchRegistro();
-  }, [id]);
+  useEffect(() => { if (id) fetchRegistro(); }, [id]);
 
-  if (loading) return <p>Cargando...</p>;
-  if (!registro) return <p>No se encontró el registro</p>;
+  if (loading) return (
+    <div className="app-shell">
+      <Sidebar />
+      <div className="main-content">
+        <div className="loading-spinner"><div className="spinner" /><span>Cargando registro...</span></div>
+      </div>
+    </div>
+  );
+
+  if (!registro) return (
+    <div className="app-shell">
+      <Sidebar />
+      <div className="main-content">
+        <div className="page-content"><p style={{ color: "var(--text-muted)" }}>Registro no encontrado</p></div>
+      </div>
+    </div>
+  );
+
+  const set = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
+
+  const fields = [
+    { key: "fechaAtencion", label: "Fecha de Atención", type: "date", display: formatFecha(registro.fechaAtencion) },
+    { key: "evolucion", label: "Evolución", display: registro.evolucion },
+    { key: "procedimiento", label: "Procedimiento Realizado", display: registro.procedimientoRealizado },
+    { key: "doctor", label: "Doctor Responsable", display: registro.doctorResponsable },
+    { key: "abono", label: "Monto Abonado", type: "number", display: registro.montoAbonado ? `S/ ${Number(registro.montoAbonado).toLocaleString("es-PE", { minimumFractionDigits: 2 })}` : "—" },
+    { key: "observaciones", label: "Observaciones", display: registro.observaciones },
+  ];
 
   return (
-    <div style={{ padding: "20px" }}>
-      <button onClick={() => navigate(-1)}>← Volver</button>
+    <div className="app-shell">
+      <Sidebar />
+      <div className="main-content">
+        <div className="topbar">
+          <span className="topbar-title">Registro de Atención</span>
+        </div>
 
-      <h2>Detalle del Registro #{registro.id}</h2>
+        <div className="page-content">
+          <button className="back-btn" onClick={() => navigate(-1)}>← Volver al Caso</button>
 
-      <div style={{ border: "1px solid #ddd", padding: "15px", marginTop: "15px" }}>
+          {/* HEADER */}
+          <div className="detail-header">
+            <div className="detail-avatar" style={{ fontSize: "20px" }}>📝</div>
+            <div style={{ flex: 1 }}>
+              <div className="detail-name">Registro #{registro.id}</div>
+              <div className="detail-id">{formatFecha(registro.fechaAtencion)}</div>
+              {registro.doctorResponsable && (
+                <div style={{ marginTop: "6px", fontSize: "13px", color: "var(--text-secondary)" }}>
+                  Dr. {registro.doctorResponsable}
+                </div>
+              )}
+            </div>
+            <div style={{ display: "flex", gap: "10px" }}>
+              {!editMode ? (
+                <button className="btn btn-ghost btn-sm" onClick={() => setEditMode(true)}>✏ Editar</button>
+              ) : (
+                <>
+                  <button className="btn btn-primary btn-sm" onClick={handleUpdate}>✓ Guardar</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => { setEditMode(false); fetchRegistro(); }}>Cancelar</button>
+                </>
+              )}
+            </div>
+          </div>
 
-        {/* FECHA */}
-        <p>
-          <strong>Fecha:</strong>{" "}
-          {editMode ? (
-            <input
-              type="date"
-              value={fechaAtencion}
-              onChange={(e) => setFechaAtencion(e.target.value)}
-            />
-          ) : (
-            formatFecha(registro.fechaAtencion)
-          )}
-        </p>
-
-        {/* EVOLUCION */}
-        <p>
-          <strong>Evolución:</strong>{" "}
-          {editMode ? (
-            <input
-              value={evolucion}
-              onChange={(e) => setEvolucion(e.target.value)}
-            />
-          ) : (
-            registro.evolucion
-          )}
-        </p>
-
-        {/* PROCEDIMIENTO */}
-        <p>
-          <strong>Procedimiento:</strong>{" "}
-          {editMode ? (
-            <input
-              value={procedimiento}
-              onChange={(e) => setProcedimiento(e.target.value)}
-            />
-          ) : (
-            registro.procedimientoRealizado
-          )}
-        </p>
-
-        {/* DOCTOR */}
-        <p>
-          <strong>Doctor:</strong>{" "}
-          {editMode ? (
-            <input
-              value={doctor}
-              onChange={(e) => setDoctor(e.target.value)}
-            />
-          ) : (
-            registro.doctorResponsable
-          )}
-        </p>
-
-        {/* ABONO */}
-        <p>
-          <strong>Abono:</strong>{" "}
-          {editMode ? (
-            <input
-              type="number"
-              value={abono}
-              onChange={(e) => setAbono(e.target.value)}
-            />
-          ) : (
-            registro.montoAbonado
-          )}
-        </p>
-
-        {/* OBSERVACIONES */}
-        <p>
-          <strong>Observaciones:</strong>{" "}
-          {editMode ? (
-            <input
-              value={observaciones}
-              onChange={(e) => setObservaciones(e.target.value)}
-            />
-          ) : (
-            registro.observaciones
-          )}
-        </p>
-
-        {/* BOTONES */}
-        {!editMode ? (
-          <button onClick={() => setEditMode(true)}>Editar</button>
-        ) : (
-          <>
-            <button onClick={handleUpdate}>Guardar</button>
-            <button
-              onClick={() => {
-                setEditMode(false);
-                fetchRegistro();
-              }}
-            >
-              Cancelar
-            </button>
-          </>
-        )}
+          {/* DATA */}
+          <div className="card">
+            <div className="card-body">
+              {editMode ? (
+                <div className="form-grid">
+                  {fields.map(({ key, label, type = "text" }) => (
+                    <div className="form-group" key={key} style={key === "evolucion" || key === "procedimiento" || key === "observaciones" ? { gridColumn: "span 2" } : {}}>
+                      <label className="form-label">{label}</label>
+                      <input
+                        className="form-input"
+                        type={type}
+                        value={form[key] || ""}
+                        onChange={set(key)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div>
+                  {fields.map(({ label, display }) => (
+                    <div className="info-row" key={label}>
+                      <span className="info-label">{label}</span>
+                      <span className="info-value">{display || "—"}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

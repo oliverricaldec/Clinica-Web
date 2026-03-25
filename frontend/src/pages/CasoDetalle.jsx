@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import Sidebar from "../components/Sidebar";
 
 const CasoDetalle = () => {
   const { id } = useParams();
@@ -8,70 +9,42 @@ const CasoDetalle = () => {
 
   const [caso, setCaso] = useState(null);
   const [loading, setLoading] = useState(true);
-
   const [editMode, setEditMode] = useState(false);
-
-  // ================= CASO STATES =================
-  const [nombreCaso, setNombreCaso] = useState("");
-  const [diagnostico, setDiagnostico] = useState("");
-  const [planTratamiento, setPlanTratamiento] = useState("");
-  const [examenAuxiliar, setExamenAuxiliar] = useState("");
-  const [proformaUrl, setProforma] = useState("");
-  const [odontogramaUrl, setOdontograma] = useState("");
-  const [costoTotal, setCostoTotal] = useState("");
-  const [fechaInicio, setFechaInicio] = useState("");
-  const [fechaFin, setFechaFin] = useState("");
-  const [estado, setEstado] = useState("ACTIVO");
-
-  // ================= REGISTROS =================
   const [registros, setRegistros] = useState([]);
-
-  // ================= FORM REGISTRO =================
   const [showForm, setShowForm] = useState(false);
-  const [evolucion, setEvolucion] = useState("");
-  const [procedimiento, setProcedimiento] = useState("");
-  const [fechaAtencion, setFechaAtencion] = useState("");
-  const [doctor, setDoctor] = useState("");
-  const [abono, setAbono] = useState("");
-  const [observaciones, setObservaciones] = useState("");
+
+  const [form, setForm] = useState({
+    nombreCaso: "", diagnostico: "", planTratamiento: "", examenAuxiliar: "",
+    proformaUrl: "", odontogramaUrl: "", costoTotal: "", fechaInicio: "", fechaFin: "", estado: "ACTIVO",
+  });
+
+  const [regForm, setRegForm] = useState({
+    fechaAtencion: "", evolucion: "", procedimiento: "", doctor: "", abono: "", observaciones: "",
+  });
 
   const token = localStorage.getItem("token");
 
-  // ================= FORMATO FECHA =================
   const formatFecha = (fecha) => {
     if (!fecha) return "Sin fecha";
     const [y, m, d] = fecha.split("-");
     return `${d}/${m}/${y}`;
   };
 
-  // ================= FETCH CASO =================
   const fetchCaso = async () => {
     try {
       setLoading(true);
-
-      const res = await axios.get(
-        `http://localhost:8080/api/casos/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
+      const res = await axios.get(`http://localhost:8080/api/casos/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = res.data;
-
       setCaso(data);
-
-      // llenar estados
-      setNombreCaso(data.nombreCaso || "");
-      setDiagnostico(data.diagnostico || "");
-      setPlanTratamiento(data.planTratamiento || "");
-      setExamenAuxiliar(data.examenAuxiliar || "");
-      setProforma(data.proformaUrl || "");
-      setOdontograma(data.odontogramaUrl || "");
-      setCostoTotal(data.costoTotal || "");
-      setFechaInicio(data.fechaInicio || "");
-      setFechaFin(data.fechaFin || "");
-      setEstado(data.estado || "ACTIVO");
-
+      setForm({
+        nombreCaso: data.nombreCaso || "", diagnostico: data.diagnostico || "",
+        planTratamiento: data.planTratamiento || "", examenAuxiliar: data.examenAuxiliar || "",
+        proformaUrl: data.proformaUrl || "", odontogramaUrl: data.odontogramaUrl || "",
+        costoTotal: data.costoTotal || "", fechaInicio: data.fechaInicio || "",
+        fechaFin: data.fechaFin || "", estado: data.estado || "ACTIVO",
+      });
     } catch (error) {
       console.error("Error cargando caso:", error);
     } finally {
@@ -79,278 +52,305 @@ const CasoDetalle = () => {
     }
   };
 
-  // ================= FETCH REGISTROS =================
   const fetchRegistros = async () => {
     try {
-      const res = await axios.get(
-        `http://localhost:8080/api/registros/caso/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
+      const res = await axios.get(`http://localhost:8080/api/registros/caso/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setRegistros(Array.isArray(res.data.data) ? res.data.data : []);
-
     } catch (error) {
-      console.error("Error cargando registros:", error.response?.data || error);
+      console.error("Error cargando registros:", error);
       setRegistros([]);
     }
   };
 
-  // ================= UPDATE CASO =================
   const handleUpdate = async () => {
     try {
-      if (!diagnostico.trim()) {
-        alert("El diagnóstico no puede estar vacío");
-        return;
-      }
-
-      await axios.put(
-        `http://localhost:8080/api/casos/${id}`,
-        {
-          nombreCaso,
-          diagnostico,
-          planTratamiento,
-          examenAuxiliar,
-          proformaUrl,
-          odontogramaUrl,
-          costoTotal: Number(costoTotal),
-          fechaInicio,
-          fechaFin,
-          estado,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+      if (!form.diagnostico.trim()) { alert("El diagnóstico no puede estar vacío"); return; }
+      await axios.put(`http://localhost:8080/api/casos/${id}`,
+        { ...form, costoTotal: Number(form.costoTotal) },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
       setEditMode(false);
       fetchCaso();
-
     } catch (error) {
-      console.error("Error actualizando caso:", error.response?.data || error);
+      console.error("Error actualizando caso:", error);
     }
   };
 
-  // ================= CREATE REGISTRO =================
   const handleCreateRegistro = async () => {
     try {
-      const res = await axios.post(
+      await axios.post(
         `http://localhost:8080/api/registros/casos/${id}/registros`,
         {
-          fechaAtencion,
-          evolucion,
-          procedimientoRealizado: procedimiento,
-          doctorResponsable: doctor,
-          montoAbonado: Number(abono),
-          observaciones,
+          fechaAtencion: regForm.fechaAtencion,
+          evolucion: regForm.evolucion,
+          procedimientoRealizado: regForm.procedimiento,
+          doctorResponsable: regForm.doctor,
+          montoAbonado: Number(regForm.abono),
+          observaciones: regForm.observaciones,
         },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      console.log("Registro creado:", res.data);
-
-      setEvolucion("");
-      setProcedimiento("");
-      setDoctor("");
-      setAbono("");
-      setObservaciones("");
-      setFechaAtencion("");
-
+      setRegForm({ fechaAtencion: "", evolucion: "", procedimiento: "", doctor: "", abono: "", observaciones: "" });
       setShowForm(false);
-
-      await fetchRegistros();
-
+      fetchRegistros();
     } catch (error) {
-      console.error("Error creando registro:", error.response?.data || error);
+      console.error("Error creando registro:", error);
     }
   };
 
-  // ================= DELETE REGISTRO =================
   const handleDeleteRegistro = async (registroId) => {
+    if (!window.confirm("¿Eliminar este registro?")) return;
     try {
-      await axios.delete(
-        `http://localhost:8080/api/registros/${registroId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
+      await axios.delete(`http://localhost:8080/api/registros/${registroId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       fetchRegistros();
-
     } catch (error) {
-      console.error("Error eliminando registro:", error.response?.data || error);
+      console.error("Error eliminando registro:", error);
     }
   };
 
-  // ================= INIT =================
   useEffect(() => {
-    if (id) {
-      fetchCaso();
-      fetchRegistros();
-    }
+    if (id) { fetchCaso(); fetchRegistros(); }
   }, [id]);
 
-  if (loading) return <p>Cargando...</p>;
-  if (!caso) return <p>No se encontró el caso</p>;
+  if (loading) return (
+    <div className="app-shell">
+      <Sidebar />
+      <div className="main-content">
+        <div className="loading-spinner"><div className="spinner" /><span>Cargando caso...</span></div>
+      </div>
+    </div>
+  );
+
+  if (!caso) return (
+    <div className="app-shell"><Sidebar /><div className="main-content"><p>No se encontró el caso</p></div></div>
+  );
+
+  const estadoBadge = (estado) => {
+    if (estado === "ACTIVO") return <span className="badge badge-active">● Activo</span>;
+    return <span className="badge" style={{ background: "rgba(59,130,246,0.1)", color: "#60a5fa", border: "1px solid rgba(59,130,246,0.2)" }}>✓ Finalizado</span>;
+  };
+
+  const setReg = (field) => (e) => setRegForm((prev) => ({ ...prev, [field]: e.target.value }));
+  const setF = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
   return (
-    <div style={{ padding: "20px" }}>
-      <button onClick={() => navigate(-1)}>← Volver</button>
-
-      <h2>Detalle del Caso #{caso.id}</h2>
-
-      {/* ================= CASO ================= */}
-      <div style={{ border: "1px solid #ddd", padding: "15px", marginTop: "15px" }}>
-
-        <p>
-          <strong>Nombre:</strong>{" "}
-          {editMode ? (
-            <input value={nombreCaso} onChange={(e) => setNombreCaso(e.target.value)} />
-          ) : (
-            caso.nombreCaso
-          )}
-        </p>
-
-        <p>
-          <strong>Diagnóstico:</strong>{" "}
-          {editMode ? (
-            <input value={diagnostico} onChange={(e) => setDiagnostico(e.target.value)} />
-          ) : (
-            caso.diagnostico
-          )}
-        </p>
-
-        <p>
-          <strong>Plan:</strong>{" "}
-          {editMode ? (
-            <input value={planTratamiento} onChange={(e) => setPlanTratamiento(e.target.value)} />
-          ) : (
-            caso.planTratamiento
-          )}
-        </p>
-
-        <p>
-          <strong>Examen:</strong>{" "}
-          {editMode ? (
-            <input value={examenAuxiliar} onChange={(e) => setExamenAuxiliar(e.target.value)} />
-          ) : (
-            caso.examenAuxiliar
-          )}
-        </p>
-
-        <p>
-          <strong>Proforma:</strong>{" "}
-          {editMode ? (
-            <input value={proformaUrl} onChange={(e) => setProforma(e.target.value)} />
-          ) : (
-            caso.proformaUrl
-          )}
-        </p>
-
-        <p>
-          <strong>Odontograma:</strong>{" "}
-          {editMode ? (
-            <input value={odontogramaUrl} onChange={(e) => setOdontograma(e.target.value)} />
-          ) : (
-            caso.odontogramaUrl
-          )}
-        </p>
-
-        <p>
-          <strong>Costo:</strong>{" "}
-          {editMode ? (
-            <input type="number" value={costoTotal} onChange={(e) => setCostoTotal(e.target.value)} />
-          ) : (
-            caso.costoTotal
-          )}
-        </p>
-
-        <p>
-          <strong>Fecha inicio:</strong>{" "}
-          {editMode ? (
-            <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
-          ) : (
-            formatFecha(caso.fechaInicio)
-          )}
-        </p>
-
-        <p>
-          <strong>Fecha fin:</strong>{" "}
-          {editMode ? (
-            <input type="date" value={fechaFin || ""} onChange={(e) => setFechaFin(e.target.value)} />
-          ) : (
-            caso.fechaFin ? formatFecha(caso.fechaFin) : "Sin fecha"
-          )}
-        </p>
-
-        <p>
-          <strong>Estado:</strong>{" "}
-          {editMode ? (
-            <select value={estado} onChange={(e) => setEstado(e.target.value)}>
-              <option value="ACTIVO">ACTIVO</option>
-              <option value="FINALIZADO">FINALIZADO</option>
-            </select>
-          ) : (
-            caso.estado
-          )}
-        </p>
-
-        {!editMode ? (
-          <button onClick={() => setEditMode(true)}>Editar</button>
-        ) : (
-          <>
-            <button onClick={handleUpdate}>Guardar</button>
-            <button onClick={() => setEditMode(false)}>Cancelar</button>
-          </>
-        )}
-      </div>
-
-      {/* ================= REGISTROS ================= */}
-      <h3 style={{ marginTop: "30px" }}>Registros</h3>
-
-      <button onClick={() => setShowForm(true)}>+ Nuevo Registro</button>
-
-      {showForm && (
-        <div style={{ marginTop: "10px" }}>
-          <input type="date" value={fechaAtencion} onChange={(e) => setFechaAtencion(e.target.value)} />
-          <input placeholder="Evolución" value={evolucion} onChange={(e) => setEvolucion(e.target.value)} />
-          <input placeholder="Procedimiento" value={procedimiento} onChange={(e) => setProcedimiento(e.target.value)} />
-          <input placeholder="Doctor" value={doctor} onChange={(e) => setDoctor(e.target.value)} />
-          <input type="number" placeholder="Abono" value={abono} onChange={(e) => setAbono(e.target.value)} />
-          <input placeholder="Observaciones" value={observaciones} onChange={(e) => setObservaciones(e.target.value)} />
-
-          <button onClick={handleCreateRegistro}>Guardar</button>
-          <button onClick={() => setShowForm(false)}>Cancelar</button>
+    <div className="app-shell">
+      <Sidebar />
+      <div className="main-content">
+        <div className="topbar">
+          <span className="topbar-title">Caso Clínico</span>
         </div>
-      )}
 
-      {registros.length === 0 ? (
-        <p>No hay registros</p>
-      ) : (
-        registros.map((r) => (
-          <div key={r.id} style={{ border: "1px solid #ccc", marginTop: "10px", padding: "10px" }}>
-            <p><strong>Fecha:</strong> {formatFecha(r.fechaAtencion)}</p>
-            <p><strong>Evolución:</strong> {r.evolucion}</p>
-            <p><strong>Procedimiento:</strong> {r.procedimientoRealizado}</p>
-            <p><strong>Doctor:</strong> {r.doctorResponsable}</p>
-            <p><strong>Abono:</strong> {r.montoAbonado}</p>
+        <div className="page-content">
+          <button className="back-btn" onClick={() => navigate(-1)}>← Volver a Historia</button>
 
-            <button onClick={() => handleDeleteRegistro(r.id)}>Eliminar</button>
-            <button
-              onClick={() => navigate(`/registros/${r.id}`)}
-              style={{
-                marginTop: "10px",
-                marginRight: "10px",
-              }}
-            >
-              Ver detalle
+          {/* CASO HEADER */}
+          <div className="detail-header">
+            <div className="detail-avatar" style={{ fontSize: "20px" }}>📋</div>
+            <div style={{ flex: 1 }}>
+              <div className="detail-name">{caso.nombreCaso || `Caso #${caso.id}`}</div>
+              <div className="detail-id">ID #{caso.id}</div>
+              <div style={{ marginTop: "10px", display: "flex", gap: "10px", alignItems: "center" }}>
+                {estadoBadge(caso.estado)}
+                <span style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "DM Mono, monospace" }}>
+                  Inicio: {formatFecha(caso.fechaInicio)}
+                </span>
+                {caso.costoTotal > 0 && (
+                  <span style={{ fontSize: "13px", color: "var(--accent)", fontFamily: "DM Mono, monospace", fontWeight: 600 }}>
+                    S/ {Number(caso.costoTotal).toLocaleString("es-PE", { minimumFractionDigits: 2 })}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: "10px" }}>
+              {!editMode ? (
+                <button className="btn btn-ghost btn-sm" onClick={() => setEditMode(true)}>✏ Editar</button>
+              ) : (
+                <>
+                  <button className="btn btn-primary btn-sm" onClick={handleUpdate}>✓ Guardar</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => { setEditMode(false); fetchCaso(); }}>Cancelar</button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* CASO DATA */}
+          <div className="card" style={{ marginBottom: "28px" }}>
+            <div className="card-body">
+              {editMode ? (
+                <div className="form-grid">
+                  {[
+                    { key: "nombreCaso", label: "Nombre del Caso", span: 2 },
+                    { key: "diagnostico", label: "Diagnóstico", span: 2 },
+                    { key: "planTratamiento", label: "Plan de Tratamiento", span: 2 },
+                    { key: "examenAuxiliar", label: "Examen Auxiliar" },
+                    { key: "costoTotal", label: "Costo Total", type: "number" },
+                    { key: "proformaUrl", label: "URL Proforma" },
+                    { key: "odontogramaUrl", label: "URL Odontograma" },
+                    { key: "fechaInicio", label: "Fecha Inicio", type: "date" },
+                    { key: "fechaFin", label: "Fecha Fin", type: "date" },
+                  ].map(({ key, label, type = "text", span }) => (
+                    <div className="form-group" key={key} style={span ? { gridColumn: `span ${span}` } : {}}>
+                      <label className="form-label">{label}</label>
+                      <input className="form-input" type={type} value={form[key] || ""} onChange={setF(key)} />
+                    </div>
+                  ))}
+                  <div className="form-group">
+                    <label className="form-label">Estado</label>
+                    <select className="form-input" value={form.estado} onChange={setF("estado")}>
+                      <option value="ACTIVO">ACTIVO</option>
+                      <option value="FINALIZADO">FINALIZADO</option>
+                    </select>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  {[
+                    { label: "Diagnóstico", value: caso.diagnostico },
+                    { label: "Plan de Tratamiento", value: caso.planTratamiento },
+                    { label: "Examen Auxiliar", value: caso.examenAuxiliar },
+                    { label: "Proforma", value: caso.proformaUrl, isUrl: true },
+                    { label: "Odontograma", value: caso.odontogramaUrl, isUrl: true },
+                    { label: "Fecha Inicio", value: formatFecha(caso.fechaInicio) },
+                    { label: "Fecha Fin", value: caso.fechaFin ? formatFecha(caso.fechaFin) : "Sin fecha" },
+                    { label: "Costo Total", value: caso.costoTotal ? `S/ ${Number(caso.costoTotal).toLocaleString("es-PE", { minimumFractionDigits: 2 })}` : "—" },
+                  ].map(({ label, value, isUrl }) => (
+                    <div className="info-row" key={label}>
+                      <span className="info-label">{label}</span>
+                      <span className="info-value">
+                        {isUrl && value
+                          ? <a href={value} target="_blank" rel="noreferrer" style={{ color: "var(--accent)", textDecoration: "none" }}>🔗 Ver</a>
+                          : (value || "—")
+                        }
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* REGISTROS */}
+          <div className="section-header">
+            <h3 className="section-title" style={{ fontSize: "17px" }}>
+              <span className="dot" />
+              Registros de Atención
+              <span style={{ fontSize: "13px", color: "var(--text-muted)", fontFamily: "DM Mono, monospace", fontWeight: 400 }}>
+                ({registros.length})
+              </span>
+            </h3>
+            <button className="btn btn-primary btn-sm" onClick={() => setShowForm(!showForm)}>
+              {showForm ? "✕ Cancelar" : "+ Nuevo Registro"}
             </button>
           </div>
-        ))
-      )}
+
+          {/* REGISTRO FORM */}
+          {showForm && (
+            <div className="form-section" style={{ marginBottom: "20px" }}>
+              <div className="form-section-title" style={{ fontSize: "14px" }}>Nuevo Registro de Atención</div>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">Fecha de Atención</label>
+                  <input className="form-input" type="date" value={regForm.fechaAtencion} onChange={setReg("fechaAtencion")} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Doctor Responsable</label>
+                  <input className="form-input" placeholder="Dr. Nombre Apellido" value={regForm.doctor} onChange={setReg("doctor")} />
+                </div>
+                <div className="form-group" style={{ gridColumn: "span 2" }}>
+                  <label className="form-label">Evolución</label>
+                  <input className="form-input" placeholder="Descripción de la evolución" value={regForm.evolucion} onChange={setReg("evolucion")} />
+                </div>
+                <div className="form-group" style={{ gridColumn: "span 2" }}>
+                  <label className="form-label">Procedimiento Realizado</label>
+                  <input className="form-input" placeholder="Procedimiento clínico realizado" value={regForm.procedimiento} onChange={setReg("procedimiento")} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Monto Abonado</label>
+                  <input className="form-input" type="number" placeholder="0.00" value={regForm.abono} onChange={setReg("abono")} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Observaciones</label>
+                  <input className="form-input" placeholder="Observaciones adicionales" value={regForm.observaciones} onChange={setReg("observaciones")} />
+                </div>
+              </div>
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "16px" }}>
+                <button className="btn btn-ghost btn-sm" onClick={() => setShowForm(false)}>Cancelar</button>
+                <button className="btn btn-primary btn-sm" onClick={handleCreateRegistro}>✓ Guardar Registro</button>
+              </div>
+            </div>
+          )}
+
+          {/* REGISTROS LIST */}
+          {registros.length === 0 ? (
+            <div className="empty-state" style={{ padding: "40px" }}>
+              <div className="empty-state-icon">📝</div>
+              <p className="empty-state-text">No hay registros de atención</p>
+            </div>
+          ) : (
+            registros.map((r) => (
+              <div key={r.id} className="registro-card">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
+                  <div>
+                    <div style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "DM Mono, monospace", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>
+                      Registro #{r.id}
+                    </div>
+                    <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-primary)" }}>
+                      {formatFecha(r.fechaAtencion)}
+                      {r.doctorResponsable && (
+                        <span style={{ marginLeft: "12px", fontSize: "13px", fontWeight: 400, color: "var(--text-secondary)" }}>
+                          Dr. {r.doctorResponsable}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button className="btn btn-secondary btn-sm" onClick={() => navigate(`/registros/${r.id}`)}>
+                      Ver Detalle
+                    </button>
+                    <button className="btn btn-danger btn-sm" onClick={() => handleDeleteRegistro(r.id)}>
+                      🗑
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                  {r.evolucion && (
+                    <div>
+                      <div style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.3px", fontFamily: "DM Mono, monospace", marginBottom: "3px" }}>Evolución</div>
+                      <div style={{ fontSize: "13.5px", color: "var(--text-secondary)" }}>{r.evolucion}</div>
+                    </div>
+                  )}
+                  {r.procedimientoRealizado && (
+                    <div>
+                      <div style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.3px", fontFamily: "DM Mono, monospace", marginBottom: "3px" }}>Procedimiento</div>
+                      <div style={{ fontSize: "13.5px", color: "var(--text-secondary)" }}>{r.procedimientoRealizado}</div>
+                    </div>
+                  )}
+                  {r.montoAbonado > 0 && (
+                    <div>
+                      <div style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.3px", fontFamily: "DM Mono, monospace", marginBottom: "3px" }}>Abono</div>
+                      <div style={{ fontSize: "13.5px", color: "var(--accent)", fontFamily: "DM Mono, monospace", fontWeight: 600 }}>
+                        S/ {Number(r.montoAbonado).toLocaleString("es-PE", { minimumFractionDigits: 2 })}
+                      </div>
+                    </div>
+                  )}
+                  {r.observaciones && (
+                    <div>
+                      <div style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.3px", fontFamily: "DM Mono, monospace", marginBottom: "3px" }}>Observaciones</div>
+                      <div style={{ fontSize: "13.5px", color: "var(--text-secondary)" }}>{r.observaciones}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
 };
