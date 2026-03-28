@@ -67,7 +67,7 @@ public class CasoService {
     public PageResponse<CasoResponse> listarPorHistoriaClinica(Long HCid, Pageable pageable){
 
         Page<CasoResponse> page = casoRepository
-                .findAll(pageable)
+                .findByHistoriaClinicaId(HCid,pageable)
                 .map(casoMapper::toResponse);
 
         return new PageResponse<>(
