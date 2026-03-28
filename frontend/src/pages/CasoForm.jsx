@@ -31,10 +31,45 @@ const CasoForm = ({ hcId, onSuccess, onCancel }) => {
       onSuccess();
     } catch (error) {
       console.error("Error creando caso:", error.response?.data || error);
+      console.log(error)
     } finally {
       setLoading(false);
     }
   };
+
+  const uploadToCloudinary = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", "odontogramas");
+
+  const res = await fetch(
+    "https://api.cloudinary.com/v1_1/dgwjbpviy/image/upload",
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+
+  const data = await res.json();
+  return data.secure_url;
+};
+
+const handleFileChange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  try {
+    const url = await uploadToCloudinary(file);
+
+    setForm((prev) => ({
+      ...prev,
+      odontogramaUrl: url,
+    }));
+
+  } catch (error) {
+    console.error("Error subiendo imagen:", error);
+  }
+};
 
   return (
     <form onSubmit={handleSubmit}>
@@ -67,8 +102,29 @@ const CasoForm = ({ hcId, onSuccess, onCancel }) => {
             <input className="form-input" placeholder="https://..." value={form.proformaUrl} onChange={set("proformaUrl")} />
           </div>
           <div className="form-group">
-            <label className="form-label">URL Odontograma</label>
-            <input className="form-input" placeholder="https://..." value={form.odontogramaUrl} onChange={set("odontogramaUrl")} />
+            <label className="form-label">Odontograma</label>
+
+            <input
+              type="file"
+              className="form-input"
+              accept="image/*"
+              onChange={handleFileChange}
+            />
+
+            {form.odontogramaUrl && (
+              <img
+                src={form.odontogramaUrl}
+                alt="preview"
+                style={{
+                  marginTop: "10px",
+                  width: "100%",
+                  maxHeight: "200px",
+                  objectFit: "contain",
+                  borderRadius: "8px",
+                  border: "1px solid var(--border)"
+                }}
+              />
+            )}
           </div>
           <div className="form-group">
             <label className="form-label">Fecha de Inicio *</label>
@@ -95,6 +151,7 @@ const CasoForm = ({ hcId, onSuccess, onCancel }) => {
         </div>
       </div>
     </form>
+    
   );
 };
 

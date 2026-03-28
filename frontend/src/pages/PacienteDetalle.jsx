@@ -170,12 +170,7 @@ const PacienteDetalle = () => {
               </div>
             </div>
             <div style={{ display: "flex", gap: "10px" }}>
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={() => navigate(`/historia/${paciente.id}`)}
-              >
-                🗂 Historia Clínica
-              </button>
+              {/* boton a historia clinica */}
               {!editMode ? (
                 <button className="btn btn-ghost btn-sm" onClick={() => setEditMode(true)}>
                   ✏ Editar

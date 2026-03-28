@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import logo from "../assets/logo.png";
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -14,9 +15,11 @@ const Sidebar = () => {
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        <div className="sidebar-logo-icon">🦷</div>
-        <div>
-          <div className="sidebar-logo-text">DentaFlow</div>
+        <div className="sidebar-logo-icon">
+          <img src={logo} alt="Logo" className="sidebar-logo-img" />
+        </div>
+        <div style={{textAlign: "center"}}>
+          <div className="sidebar-logo-text">¿Que haremos hoy?</div>
           <div className="sidebar-logo-sub">Sistema Clínico</div>
         </div>
       </div>

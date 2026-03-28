@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../services/api";
 import { useNavigate } from "react-router-dom";
+import logo from "../assets/logo.png";
 
 function Login() {
   const [username, setUsername] = useState("");
@@ -31,8 +32,8 @@ function Login() {
 
       <div className="login-card">
         <div className="login-logo">
-          <div className="login-logo-icon">🦷</div>
-          <h1 className="login-title">DentaFlow</h1>
+          <img src={logo} alt="Logo" className="login-logo-img" />
+          <h1 className="login-title">Bienvenida</h1>
           <p className="login-subtitle">Sistema de gestión odontológica</p>
         </div>
 
@@ -80,7 +81,7 @@ function Login() {
         </form>
 
         <p style={{ textAlign: "center", marginTop: "24px", fontSize: "12px", color: "var(--text-muted)" }}>
-          © 2025 DentaFlow — Gestión Clínica Profesional
+          © 2026 Merident — Gestión Clínica Profesional
         </p>
       </div>
     </div>

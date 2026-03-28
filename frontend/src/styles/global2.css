@@ -1,28 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
 :root {
-  --bg-deep: #04080f;
-  --bg-surface: #070e1a;
-  --bg-card: #0a1525;
-  --bg-card-hover: #0d1c30;
-  --bg-input: #060c18;
+  --bg-deep: #060d1a;
+  --bg-surface: #0d1b2e;
+  --bg-card: #0f2340;
+  --bg-card-hover: #132b4e;
+  --bg-input: #0a1929;
 
-  /* ── Primario: Azul #0497ff ── */
   --accent: #0497ff;
-  --accent-dim: rgba(4, 151, 255, 0.13);
-  --accent-glow: rgba(4, 151, 255, 0.38);
-
-  /* ── Secundario: Rosa #fc5ba7 ── */
   --accent-secondary: #fc5ba7;
-  --accent-secondary-dim: rgba(252, 91, 167, 0.13);
-  --accent-secondary-glow: rgba(252, 91, 167, 0.35);
+  --accent-dim: rgba(4, 151, 255, 0.15);
+  --accent-glow: rgba(4, 151, 255, 0.4);
 
-  --text-primary: #e6f0ff;
-  --text-secondary: #6b93bb;
-  --text-muted: #2e4a66;
+  --text-primary: #e8f4f8;
+  --text-secondary: #7fa8c4;
+  --text-muted: #3d6480;
 
-  --border: rgba(4, 151, 255, 0.11);
-  --border-active: rgba(4, 151, 255, 0.48);
+  --border: rgba(4, 151, 255, 0.12);
+  --border-active: rgba(4, 151, 255, 0.5);
 
   --danger: #ff4d6d;
   --danger-dim: rgba(255, 77, 109, 0.15);
@@ -31,8 +26,8 @@
 
   --radius: 14px;
   --radius-sm: 8px;
-  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(4, 151, 255, 0.06);
-  --shadow-glow: 0 0 30px rgba(4, 151, 255, 0.14);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(4, 151, 255, 0.06);
+  --shadow-glow: 0 0 30px rgba(4, 151, 255, 0.15);
 }
 
 *, *::before, *::after {
@@ -52,8 +47,8 @@ body {
   color: var(--text-primary);
   min-height: 100vh;
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(4, 151, 255, 0.07) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 85% 85%, rgba(252, 91, 167, 0.05) 0%, transparent 50%);
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(4, 151, 255, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(252, 91, 167, 0.04) 0%, transparent 50%);
 }
 
 /* ─── SCROLLBAR ─────────────────────────────────── */
@@ -85,25 +80,31 @@ body {
 
 .sidebar-logo {
   display: flex;
-  flex-direction: column;   /* ← agregar */
   align-items: center;
   gap: 12px;
   padding: 0 24px 32px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 24px;
-  text-align: center;       /* ← agregar */
 }
 
 .sidebar-logo-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  margin: 0 auto 10px;
+  overflow: hidden;
+  background: transparent;
 }
+
+.sidebar-logo-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+
 
 .sidebar-logo-text {
   font-size: 16px;
@@ -154,7 +155,7 @@ body {
 .sidebar-item.active {
   background: var(--accent-dim);
   color: var(--accent);
-  border: 1px solid rgba(0, 212, 200, 0.2);
+  border: 1px solid rgba(--border);
 }
 
 .sidebar-bottom {
@@ -212,7 +213,7 @@ body {
 
 .card:hover {
   background: var(--bg-card-hover);
-  border-color: rgba(0, 212, 200, 0.22);
+  border-color: rgba(4, 151, 255, 0.22);
   box-shadow: var(--shadow-card), var(--shadow-glow);
   transform: translateY(-2px);
 }
@@ -274,7 +275,7 @@ body {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-dim), var(--accent-secondary-dim));
+  background: linear-gradient(135deg, var(--accent-dim), rgba(59, 130, 246, 0.15));
   border: 1.5px solid var(--border-active);
   display: flex;
   align-items: center;
@@ -438,14 +439,15 @@ select.form-input option {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent), #0077dd);
-  color: #ffffff;
+  background: var(--accent);
+  color: white;
+  border: 1px solid transparent;
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #2aa8ff, #0497ff);
+  background: #037cd6; /* azul más oscuro */
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(4, 151, 255, 0.38);
+  box-shadow: 0 4px 16px rgba(4, 151, 255, 0.35);
 }
 
 .btn-primary:active { transform: translateY(0); }
@@ -457,7 +459,7 @@ select.form-input option {
 }
 
 .btn-secondary:hover {
-  background: rgba(4, 151, 255, 0.2);
+  background: rgba(0, 212, 200, 0.2);
   border-color: var(--border-active);
 }
 
@@ -513,7 +515,7 @@ select.form-input option {
   display: flex;
   align-items: flex-start;
   padding: 12px 0;
-  border-bottom: 1px solid rgba(0, 212, 200, 0.06);
+  border-bottom: 1px solid rgba(4, 151, 255, 0.06);
   gap: 16px;
 }
 
@@ -745,7 +747,7 @@ select.form-input option {
 }
 
 .form-toggle-btn:hover {
-  background: rgba(4, 151, 255, 0.2);
+  background: rgba(0, 212, 200, 0.2);
   border-color: var(--border-active);
 }
 
@@ -821,8 +823,8 @@ select.form-input option {
   justify-content: center;
   background: var(--bg-deep);
   background-image:
-    radial-gradient(ellipse 100% 60% at 50% 0%, rgba(4, 151, 255, 0.09) 0%, transparent 60%),
-    radial-gradient(ellipse 80% 50% at 20% 100%, rgba(252, 91, 167, 0.07) 0%, transparent 50%);
+    radial-gradient(ellipse 100% 60% at 50% 0%, rgba(4, 151, 255, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 50% at 20% 100%, rgba(252, 91, 167, 0.06) 0%, transparent 50%);
   position: relative;
   overflow: hidden;
 }
@@ -831,8 +833,8 @@ select.form-input option {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(4, 151, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(4, 151, 255, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(4, 151, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(4, 151, 255, 0.03) 1px, transparent 1px);
   background-size: 60px 60px;
   pointer-events: none;
 }
@@ -844,7 +846,7 @@ select.form-input option {
   padding: 40px;
   width: 100%;
   max-width: 420px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(4, 151, 255, 0.08);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 212, 200, 0.08);
   animation: fadeUp 0.5s ease;
   position: relative;
   z-index: 1;
@@ -856,16 +858,20 @@ select.form-input option {
 }
 
 .login-logo-icon {
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
-  border-radius: 16px;
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
-  margin: 0 auto 16px;
-  box-shadow: 0 0 30px rgba(4, 151, 255, 0.35);
+  overflow: hidden;
+  background: transparent;
+}
+
+.login-logo-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .login-title {
@@ -950,77 +956,4 @@ select.form-input option {
   .page-content { padding: 20px 16px; }
   .patients-grid { grid-template-columns: 1fr; }
   .form-grid { grid-template-columns: 1fr; }
-}
-
-/* ─── PAYMENT BAR ────────────────────────────────── */
-.payment-bar-wrap {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-}
-
-.payment-bar-labels {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 7px;
-}
-
-.payment-bar-label {
-  font-size: 11px;
-  font-family: 'DM Mono', monospace;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-
-.payment-bar-track {
-  width: 100%;
-  height: 6px;
-  background: rgba(255,255,255,0.06);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.payment-bar-fill {
-  height: 100%;
-  border-radius: 10px;
-  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
-}
-
-.payment-bar-fill.paid-full {
-  background: linear-gradient(90deg, var(--success), #00e5b0);
-}
-
-.payment-amounts {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 7px;
-}
-
-.payment-amount {
-  font-size: 12px;
-  font-family: 'DM Mono', monospace;
-}
-
-/* ─── LOGO IMG ───────────────────────────────────── */
-.sidebar-logo-img {
-  width: 180px;
-  height: 180px;
-  border-radius: 10px;
-  object-fit: contain;
-  display: block;
-  /* Glow azul que combina con el accent */
-  filter: drop-shadow(0 0 8px rgba(4, 151, 255, 0.45));
-}
-
-.login-logo-img {
-  width: 280px;
-  height: 280px;
-  object-fit: contain;
-  display: block;
-  margin: 0 auto 16px;
-  border-radius: 18px;
-  /* Glow más intenso en la pantalla de login */
-  filter: drop-shadow(0 0 22px rgba(4, 151, 255, 0.55))
-          drop-shadow(0 0 8px rgba(252, 91, 167, 0.25));
 }

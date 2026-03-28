@@ -12,6 +12,7 @@ const HistoriaClinica = () => {
   const [page, setPage] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const navigate = useNavigate();
+  const [abonosPorCaso, setAbonosPorCaso] = useState({});
 
   const fetchCasos = async () => {
     try {
@@ -21,12 +22,61 @@ const HistoriaClinica = () => {
         `http://localhost:8080/api/casos/historiasClinicas/${id}?page=${page}&size=5`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       setCasos(res.data);
+
+      if (res.data?.data) {
+        fetchAbonos(res.data.data);
+      }
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchAbonos = async (casosList) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const resultados = await Promise.all(
+        casosList.map(async (caso) => {
+          try {
+            const res = await axios.get(
+              `http://localhost:8080/api/registros/caso/${caso.id}`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+
+            const registros = res.data.data || [];
+
+            const totalAbonado = registros.reduce(
+              (sum, r) => sum + (r.montoAbonado || 0),
+              0
+            );
+
+            return { casoId: caso.id, totalAbonado };
+          } catch {
+            return { casoId: caso.id, totalAbonado: 0 };
+          }
+        })
+      );
+
+      const mapa = {};
+      resultados.forEach((r) => {
+        mapa[r.casoId] = r.totalAbonado;
+      });
+
+      setAbonosPorCaso(mapa);
+    } catch (error) {
+      console.error("Error calculando abonos:", error);
+    }
+  };
+
+  const calcularProgreso = (abonado, total) => {
+    if (!total || total === 0) return 0;
+    return Math.min((abonado / total) * 100, 100);
   };
 
   const handleDelete = async (casoId) => {
@@ -48,7 +98,19 @@ const HistoriaClinica = () => {
 
   const estadoBadge = (estado) => {
     if (estado === "ACTIVO") return <span className="badge badge-active">● Activo</span>;
-    if (estado === "FINALIZADO") return <span className="badge" style={{ background: "rgba(59,130,246,0.1)", color: "#60a5fa", border: "1px solid rgba(59,130,246,0.2)" }}>✓ Finalizado</span>;
+    if (estado === "FINALIZADO")
+      return (
+        <span
+          className="badge"
+          style={{
+            background: "rgba(59,130,246,0.1)",
+            color: "#60a5fa",
+            border: "1px solid rgba(59,130,246,0.2)",
+          }}
+        >
+          ✓ Finalizado
+        </span>
+      );
     return <span className="badge badge-inactive">{estado}</span>;
   };
 
@@ -59,45 +121,53 @@ const HistoriaClinica = () => {
         <div className="topbar">
           <span className="topbar-title">Historia Clínica</span>
           {casos && (
-            <span style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "DM Mono, monospace" }}>
+            <span
+              style={{
+                fontSize: "12px",
+                color: "var(--text-muted)",
+                fontFamily: "DM Mono, monospace",
+              }}
+            >
               {casos.totalElements || (casos.data?.length ?? 0)} caso(s)
             </span>
           )}
         </div>
 
         <div className="page-content">
-          <button className="back-btn" onClick={() => navigate(-1)}>← Volver al Paciente</button>
+          <button className="back-btn" onClick={() => navigate(-1)}>
+            ← Volver al Paciente
+          </button>
 
-          {/* SECTION HEADER */}
           <div className="section-header">
             <h2 className="section-title">
               <span className="dot" />
-              Casos Clínicos
+              Tratamientos dentales
             </h2>
             <button
               className="btn btn-primary"
               onClick={() => setShowForm(!showForm)}
             >
-              {showForm ? "✕ Cancelar" : "+ Nuevo Caso"}
+              {showForm ? "✕ Cancelar" : "+ Nuevo tratamiento dental"}
             </button>
           </div>
 
-          {/* FORM */}
           {showForm && (
             <div style={{ marginBottom: "24px" }}>
               <CasoForm
                 hcId={id}
-                onSuccess={() => { fetchCasos(); setShowForm(false); }}
+                onSuccess={() => {
+                  fetchCasos();
+                  setShowForm(false);
+                }}
                 onCancel={() => setShowForm(false)}
               />
             </div>
           )}
 
-          {/* LOADING */}
           {loading ? (
             <div className="loading-spinner">
               <div className="spinner" />
-              <span>Cargando casos...</span>
+              <span>Cargando tratamientos dentales...</span>
             </div>
           ) : !casos ? (
             <div className="empty-state">
@@ -106,83 +176,78 @@ const HistoriaClinica = () => {
             </div>
           ) : (
             <>
-              {/* CASES GRID */}
               {Array.isArray(casos.data) && casos.data.length > 0 ? (
                 <div className="casos-grid">
-                  {casos.data.map((caso, i) => (
-                    <div key={caso.id} className={`caso-card stagger-${Math.min(i + 1, 5)}`}>
-                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "12px" }}>
-                        <div>
-                          <div className="caso-number">Caso #{caso.id}</div>
-                          <div className="caso-title">{caso.nombreCaso || caso.diagnostico}</div>
-                        </div>
-                        {estadoBadge(caso.estado)}
-                      </div>
+                  {casos.data.map((caso, i) => {
+                    const abonado = abonosPorCaso[caso.id] || 0;
+                    const total = caso.costoTotal || 0;
+                    const restante = total - abonado;
+                    const progreso = calcularProgreso(abonado, total);
 
-                      <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "16px" }}>
-                        <div style={{ display: "flex", gap: "8px", fontSize: "13.5px", color: "var(--text-secondary)" }}>
-                          <span style={{ color: "var(--text-muted)", minWidth: "90px", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.3px", fontFamily: "DM Mono, monospace", paddingTop: "2px" }}>Diagnóstico</span>
-                          {caso.diagnostico}
-                        </div>
-                        <div style={{ display: "flex", gap: "8px", fontSize: "13.5px", color: "var(--text-secondary)" }}>
-                          <span style={{ color: "var(--text-muted)", minWidth: "90px", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.3px", fontFamily: "DM Mono, monospace", paddingTop: "2px" }}>Inicio</span>
-                          {caso.fechaInicio || "—"}
-                        </div>
-                        {caso.costoTotal && (
-                          <div style={{ display: "flex", gap: "8px", fontSize: "13.5px", color: "var(--text-secondary)" }}>
-                            <span style={{ color: "var(--text-muted)", minWidth: "90px", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.3px", fontFamily: "DM Mono, monospace", paddingTop: "2px" }}>Costo</span>
-                            <span style={{ color: "var(--accent)", fontFamily: "DM Mono, monospace", fontWeight: 600 }}>
-                              S/ {Number(caso.costoTotal).toLocaleString("es-PE", { minimumFractionDigits: 2 })}
-                            </span>
+                    return (
+                      <div key={caso.id} className={`caso-card stagger-${Math.min(i + 1, 5)}`}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
+                          <div>
+                            <div className="caso-number">Tratamiento dental #{caso.id}</div>
+                            <div className="caso-title">{caso.nombreCaso || caso.diagnostico}</div>
                           </div>
-                        )}
-                      </div>
+                          {estadoBadge(caso.estado)}
+                        </div>
 
-                      <div style={{ display: "flex", gap: "8px" }}>
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          style={{ flex: 1 }}
-                          onClick={() => navigate(`/casos/${caso.id}`)}
-                        >
-                          Ver Detalles →
-                        </button>
-                        <button
-                          className="btn btn-danger btn-sm"
-                          onClick={() => handleDelete(caso.id)}
-                        >
-                          🗑
-                        </button>
+                        <div style={{ marginBottom: "12px" }}>
+                          <p>Diagnóstico: {caso.diagnostico}</p>
+                          <p>Inicio: {caso.fechaInicio || "—"}</p>
+                          <p>
+                            Costo: <strong>S/ {total.toFixed(2)}</strong>
+                          </p>
+                        </div>
+
+                        {/* 💰 PAGOS */}
+                        <div style={{ marginBottom: "12px" }}>
+                          <p>Abonado: S/ {abonado.toFixed(2)}</p>
+
+                          <div style={{ height: "8px", background: "#1a2a40", borderRadius: "5px" }}>
+                            <div
+                              style={{
+                                width: `${progreso}%`,
+                                height: "100%",
+                                background:
+                                  progreso === 100
+                                    ? "#00c896"
+                                    : "linear-gradient(90deg, #0497ff, #fc5ba7)",
+                              }}
+                            />
+                          </div>
+
+                          <p style={{ fontSize: "12px" }}>
+                            {progreso === 100
+                              ? "Pagado"
+                              : `Falta: S/ ${restante.toFixed(2)}`}
+                          </p>
+                        </div>
+
+                        <div style={{ display: "flex", gap: "8px" }}>
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            style={{ flex: 1 }}
+                            onClick={() => navigate(`/casos/${caso.id}`)}
+                          >
+                            Ver Detalles →
+                          </button>
+                          <button
+                            className="btn btn-danger btn-sm"
+                            onClick={() => handleDelete(caso.id)}
+                          >
+                            🗑
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="empty-state">
-                  <div className="empty-state-icon">📋</div>
-                  <p className="empty-state-text">No hay casos registrados</p>
-                </div>
-              )}
-
-              {/* PAGINATION */}
-              {casos.totalPages > 1 && (
-                <div className="pagination">
-                  <button
-                    className="btn btn-ghost btn-sm"
-                    disabled={page === 0}
-                    onClick={() => setPage(page - 1)}
-                  >
-                    ← Anterior
-                  </button>
-                  <span className="page-info">
-                    Página {page + 1} / {casos.totalPages}
-                  </span>
-                  <button
-                    className="btn btn-ghost btn-sm"
-                    disabled={page + 1 >= casos.totalPages}
-                    onClick={() => setPage(page + 1)}
-                  >
-                    Siguiente →
-                  </button>
+                  <p>No hay casos registrados</p>
                 </div>
               )}
             </>
