@@ -200,9 +200,28 @@ const HistoriaClinica = () => {
                           <p>
                             Costo: <strong>S/ {total.toFixed(2)}</strong>
                           </p>
+
+                          {/* 🖼 IMÁGENES */}
+                          {caso.imagenes && caso.imagenes.length > 0 && (
+                            <div style={{ marginTop: "10px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                              {caso.imagenes.map((img, index) => (
+                                <img
+                                  key={index}
+                                  src={img.url}
+                                  alt="caso"
+                                  style={{
+                                    width: "80px",
+                                    height: "80px",
+                                    objectFit: "cover",
+                                    borderRadius: "6px",
+                                    border: "1px solid #2a3a50"
+                                  }}
+                                />
+                              ))}
+                            </div>
+                          )}
                         </div>
 
-                        {/* 💰 PAGOS */}
                         <div style={{ marginBottom: "12px" }}>
                           <p>Abonado: S/ {abonado.toFixed(2)}</p>
 

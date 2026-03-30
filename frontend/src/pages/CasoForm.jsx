@@ -8,68 +8,114 @@ const CasoForm = ({ hcId, onSuccess, onCancel }) => {
     planTratamiento: "",
     examenAuxiliar: "",
     proformaUrl: "",
-    odontogramaUrl: "",
     costoTotal: "",
     fechaInicio: "",
     estado: "ACTIVO",
   });
 
+  // 🔥 imágenes separadas por tipo
+  const [imagenes, setImagenes] = useState({
+    ODONTOGRAMA: [],
+    EXAMEN_AUXILIAR: [],
+    PLAN_TRATAMIENTO: [],
+    PROFORMA: []
+  });
+
   const [loading, setLoading] = useState(false);
   const token = localStorage.getItem("token");
-  const set = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
+  const set = (field) => (e) =>
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+
+  // ☁️ subir a cloudinary
+  const uploadToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "odontogramas");
+
+    const res = await fetch(
+      "https://api.cloudinary.com/v1_1/dgwjbpviy/image/upload",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    const data = await res.json();
+    return data.secure_url;
+  };
+
+  // 📸 manejar múltiples imágenes
+  const handleFileChange = async (e, tipo) => {
+    const files = Array.from(e.target.files);
+
+    try {
+      const urls = await Promise.all(
+        files.map((file) => uploadToCloudinary(file))
+      );
+
+      setImagenes((prev) => ({
+        ...prev,
+        [tipo]: [...prev[tipo], ...urls],
+      }));
+    } catch (error) {
+      console.error("Error subiendo imágenes:", error);
+    }
+  };
+
+  // 🚀 submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
+      // 🔥 transformar imágenes al formato backend
+      const imagenesPayload = Object.entries(imagenes).flatMap(
+        ([tipo, urls]) =>
+          urls.map((url) => ({
+            url,
+            tipo,
+          }))
+      );
+
       await axios.post(
         `http://localhost:8080/api/casos/historiasClinicas/${hcId}/casos`,
-        { ...form, costoTotal: Number(form.costoTotal) },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          ...form,
+          costoTotal: Number(form.costoTotal),
+          imagenes: imagenesPayload,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
-      setForm({ nombreCaso: "", diagnostico: "", planTratamiento: "", examenAuxiliar: "", proformaUrl: "", odontogramaUrl: "", costoTotal: "", fechaInicio: "", estado: "ACTIVO" });
+
+      // reset
+      setForm({
+        nombreCaso: "",
+        diagnostico: "",
+        planTratamiento: "",
+        examenAuxiliar: "",
+        proformaUrl: "",
+        costoTotal: "",
+        fechaInicio: "",
+        estado: "ACTIVO",
+      });
+
+      setImagenes({
+        ODONTOGRAMA: [],
+        EXAMEN_AUXILIAR: [],
+        PLAN_TRATAMIENTO: [],
+        PROFORMA: []
+      });
+
       onSuccess();
     } catch (error) {
       console.error("Error creando caso:", error.response?.data || error);
-      console.log(error)
     } finally {
       setLoading(false);
     }
   };
-
-  const uploadToCloudinary = async (file) => {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", "odontogramas");
-
-  const res = await fetch(
-    "https://api.cloudinary.com/v1_1/dgwjbpviy/image/upload",
-    {
-      method: "POST",
-      body: formData,
-    }
-  );
-
-  const data = await res.json();
-  return data.secure_url;
-};
-
-const handleFileChange = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  try {
-    const url = await uploadToCloudinary(file);
-
-    setForm((prev) => ({
-      ...prev,
-      odontogramaUrl: url,
-    }));
-
-  } catch (error) {
-    console.error("Error subiendo imagen:", error);
-  }
-};
 
   return (
     <form onSubmit={handleSubmit}>
@@ -77,66 +123,82 @@ const handleFileChange = async (e) => {
         <div className="form-section-title">Nuevo Caso Clínico</div>
 
         <div className="form-grid" style={{ marginBottom: "16px" }}>
+          
+          {/* BASICO */}
           <div className="form-group" style={{ gridColumn: "span 2" }}>
             <label className="form-label">Nombre del Caso *</label>
-            <input className="form-input" placeholder="Ej: Tratamiento de caries múltiple" value={form.nombreCaso} onChange={set("nombreCaso")} required />
+            <input className="form-input" value={form.nombreCaso} onChange={set("nombreCaso")} required />
           </div>
+
           <div className="form-group" style={{ gridColumn: "span 2" }}>
             <label className="form-label">Diagnóstico *</label>
-            <input className="form-input" placeholder="Diagnóstico clínico" value={form.diagnostico} onChange={set("diagnostico")} required />
+            <input className="form-input" value={form.diagnostico} onChange={set("diagnostico")} required />
           </div>
+
+          {/* PLAN */}
           <div className="form-group" style={{ gridColumn: "span 2" }}>
             <label className="form-label">Plan de Tratamiento</label>
-            <input className="form-input" placeholder="Plan detallado de tratamiento" value={form.planTratamiento} onChange={set("planTratamiento")} />
+            <input className="form-input" value={form.planTratamiento} onChange={set("planTratamiento")} />
+            <input type="file" multiple accept="image/*" onChange={(e) => handleFileChange(e, "PLAN_TRATAMIENTO")} />
           </div>
-          <div className="form-group">
+
+          {/* EXAMEN */}
+          <div className="form-group" style={{ gridColumn: "span 2" }}>
             <label className="form-label">Examen Auxiliar</label>
-            <input className="form-input" placeholder="Radiografías, análisis..." value={form.examenAuxiliar} onChange={set("examenAuxiliar")} />
+            <input className="form-input" value={form.examenAuxiliar} onChange={set("examenAuxiliar")} />
+            <input type="file" multiple accept="image/*" onChange={(e) => handleFileChange(e, "EXAMEN_AUXILIAR")} />
           </div>
-          <div className="form-group">
-            <label className="form-label">Costo Total *</label>
-            <input className="form-input" type="number" placeholder="0.00" value={form.costoTotal} onChange={set("costoTotal")} required />
-          </div>
-          <div className="form-group">
-            <label className="form-label">URL Proforma</label>
-            <input className="form-input" placeholder="https://..." value={form.proformaUrl} onChange={set("proformaUrl")} />
-          </div>
-          <div className="form-group">
+
+          {/* ODONTOGRAMA */}
+          <div className="form-group" style={{ gridColumn: "span 2" }}>
             <label className="form-label">Odontograma</label>
+            <input type="file" multiple accept="image/*" onChange={(e) => handleFileChange(e, "ODONTOGRAMA")} />
+          </div>
 
-            <input
-              type="file"
-              className="form-input"
-              accept="image/*"
-              onChange={handleFileChange}
-            />
+          <div className="form-group" style={{ gridColumn: "span 2" }}>
+  <label className="form-label">Presupuesto</label>
+  
+  {/* input texto */}
+  <input
+    className="form-input"
+    value={form.proformaUrl}
+    onChange={set("proformaUrl")}
+  />
 
-            {form.odontogramaUrl && (
-              <img
-                src={form.odontogramaUrl}
-                alt="preview"
-                style={{
-                  marginTop: "10px",
-                  width: "100%",
-                  maxHeight: "200px",
-                  objectFit: "contain",
-                  borderRadius: "8px",
-                  border: "1px solid var(--border)"
-                }}
-              />
+  {/* input imágenes */}
+  <input
+    type="file"
+    multiple
+    accept="image/*"
+    onChange={(e) => handleFileChange(e, "PROFORMA")}
+  />
+</div>
+
+          {/* PREVIEWS */}
+          <div style={{ gridColumn: "span 2" }}>
+            {Object.entries(imagenes).map(([tipo, urls]) =>
+              urls.map((url, i) => (
+                <img
+                  key={tipo + i}
+                  src={url}
+                  alt=""
+                  style={{ width: "100px", margin: "5px" }}
+                />
+              ))
             )}
           </div>
+
+          {/* OTROS */}
+          <div className="form-group">
+            <label className="form-label">Costo Total *</label>
+            <input type="number" className="form-input" value={form.costoTotal} onChange={set("costoTotal")} required />
+          </div>
+
           <div className="form-group">
             <label className="form-label">Fecha de Inicio *</label>
-            <input className="form-input" type="date" value={form.fechaInicio} onChange={set("fechaInicio")} required />
+            <input type="date" className="form-input" value={form.fechaInicio} onChange={set("fechaInicio")} required />
           </div>
-          <div className="form-group">
-            <label className="form-label">Estado</label>
-            <select className="form-input" value={form.estado} onChange={set("estado")}>
-              <option value="ACTIVO">ACTIVO</option>
-              <option value="CERRADO">CERRADO</option>
-            </select>
-          </div>
+
         </div>
 
         <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
@@ -151,7 +213,6 @@ const handleFileChange = async (e) => {
         </div>
       </div>
     </form>
-    
   );
 };
 

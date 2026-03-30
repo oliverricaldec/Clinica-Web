@@ -102,16 +102,16 @@ const PacienteForm = ({ onSuccess }) => {
 
         {/* ANTECEDENTES */}
         <div style={{ fontSize: "11.5px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontFamily: "DM Mono, monospace", marginBottom: "12px" }}>
-          Antecedentes (URL)
+          Antecedentes
         </div>
         <div className="form-grid">
           <div className="form-group">
             <label className="form-label">Médicos</label>
-            <input className="form-input" placeholder="https://..." value={form.antecedentesMedicosUrl} onChange={set("antecedentesMedicosUrl")} />
+            <input className="form-input"  value={form.antecedentesMedicosUrl} onChange={set("antecedentesMedicosUrl")} />
           </div>
           <div className="form-group">
             <label className="form-label">Odontológicos</label>
-            <input className="form-input" placeholder="https://..." value={form.antecedentesOdontologicosUrl} onChange={set("antecedentesOdontologicosUrl")} />
+            <input className="form-input"  value={form.antecedentesOdontologicosUrl} onChange={set("antecedentesOdontologicosUrl")} />
           </div>
         </div>
 

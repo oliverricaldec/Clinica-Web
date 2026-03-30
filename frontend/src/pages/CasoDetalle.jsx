@@ -3,6 +3,363 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Sidebar from "../components/Sidebar";
 
+// ─── Cloudinary upload ────────────────────────────────
+const uploadToCloudinary = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", "odontogramas");
+  const res = await fetch("https://api.cloudinary.com/v1_1/dgwjbpviy/image/upload", {
+    method: "POST",
+    body: formData,
+  });
+  const data = await res.json();
+  return data.secure_url;
+};
+
+// ─── Constantes — alineadas con enum TipoImagen Java ──
+const TIPOS = ["ODONTOGRAMA", "EXAMEN_AUXILIAR", "PLAN_TRATAMIENTO", "PROFORMA"];
+
+const TIPO_LABEL = {
+  ODONTOGRAMA:      "Odontograma",
+  EXAMEN_AUXILIAR:  "Examen Auxiliar",
+  PLAN_TRATAMIENTO: "Plan de Tratamiento",
+  PROFORMA: "Proforma"
+};
+
+const TIPO_COLOR = {
+  ODONTOGRAMA:      { bg: "rgba(4,151,255,0.10)",  color: "#0497ff", border: "rgba(4,151,255,0.25)" },
+  EXAMEN_AUXILIAR:  { bg: "rgba(252,91,167,0.10)", color: "#fc5ba7", border: "rgba(252,91,167,0.25)" },
+  PLAN_TRATAMIENTO: { bg: "rgba(0,200,150,0.10)",  color: "#00c896", border: "rgba(0,200,150,0.25)" },
+  PROFORMA:         { bg: "rgba(0,200,150,0.10)",  color: "#3500c8", border: "rgba(160, 0, 200, 0.25)" }
+};
+
+// ─── Galería solo lectura: miniatura + link ───────────
+const ImagenGallery = ({ imagenes }) => {
+  const [preview, setPreview] = useState(null);
+  if (!imagenes || imagenes.length === 0) return null;
+
+  const porTipo = TIPOS.reduce((acc, tipo) => {
+    acc[tipo] = imagenes.filter((img) => img.tipo === tipo);
+    return acc;
+  }, {});
+
+  return (
+    <>
+      {/* Modal fullscreen */}
+      {preview && (
+        <div
+          onClick={() => setPreview(null)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 1000,
+            background: "rgba(0,0,0,0.90)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "zoom-out",
+          }}
+        >
+          <div style={{ position: "relative" }}>
+            <img
+              src={preview}
+              alt="Preview"
+              style={{
+                maxWidth: "90vw", maxHeight: "85vh",
+                borderRadius: "12px",
+                boxShadow: "0 0 80px rgba(0,0,0,0.8)",
+              }}
+            />
+            {/* Botón abrir en Cloudinary */}
+            <a
+              href={preview}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position: "absolute", bottom: "12px", right: "12px",
+                background: "rgba(4,151,255,0.9)", color: "#fff",
+                padding: "6px 14px", borderRadius: "8px",
+                fontSize: "12px", fontWeight: 600, textDecoration: "none",
+                fontFamily: "Sora, sans-serif",
+              }}
+            >
+              🔗 Abrir original
+            </a>
+            {/* Cerrar */}
+            <button
+              onClick={() => setPreview(null)}
+              style={{
+                position: "absolute", top: "-12px", right: "-12px",
+                width: "28px", height: "28px", borderRadius: "50%",
+                background: "rgba(255,77,109,0.9)", color: "#fff",
+                border: "none", cursor: "pointer", fontSize: "13px",
+                fontWeight: 700, display: "flex", alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
+      {TIPOS.map((tipo) => {
+        const imgs = porTipo[tipo];
+        if (!imgs || imgs.length === 0) return null;
+        const c = TIPO_COLOR[tipo];
+
+        return (
+          <div key={tipo} style={{ marginBottom: "24px" }}>
+            {/* Badge tipo */}
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+              <span style={{
+                fontSize: "11px", fontFamily: "DM Mono, monospace",
+                textTransform: "uppercase", letterSpacing: "0.5px",
+                padding: "3px 10px", borderRadius: "20px",
+                background: c.bg, color: c.color, border: `1px solid ${c.border}`,
+              }}>
+                {TIPO_LABEL[tipo]}
+              </span>
+              <span style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "DM Mono, monospace" }}>
+                {imgs.length} imagen{imgs.length !== 1 ? "es" : ""}
+              </span>
+            </div>
+
+            {/* Grid de imágenes */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
+              {imgs.map((img, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: "flex", flexDirection: "column", gap: "6px",
+                    width: "110px",
+                  }}
+                >
+                  {/* Miniatura clickeable → modal */}
+                  <div
+                    onClick={() => setPreview(img.url)}
+                    style={{
+                      width: "110px", height: "110px", borderRadius: "10px",
+                      overflow: "hidden", cursor: "zoom-in",
+                      border: `1px solid ${c.border}`,
+                      transition: "transform 0.18s ease, box-shadow 0.18s ease",
+                      flexShrink: 0,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "scale(1.05)";
+                      e.currentTarget.style.boxShadow = `0 4px 16px ${c.border}`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "scale(1)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
+                  >
+                    <img
+                      src={img.url}
+                      alt={`${TIPO_LABEL[tipo]} ${i + 1}`}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  </div>
+
+                  {/* Link debajo */}
+                  <a
+                    href={img.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      fontSize: "11px", color: c.color,
+                      textDecoration: "none", fontFamily: "DM Mono, monospace",
+                      textAlign: "center", lineHeight: 1.3,
+                      overflow: "hidden", textOverflow: "ellipsis",
+                      whiteSpace: "nowrap", display: "block",
+                      padding: "2px 4px", borderRadius: "4px",
+                      background: c.bg, border: `1px solid ${c.border}`,
+                      transition: "opacity 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.75"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
+                    title={img.url}
+                  >
+                    🔗 Ver imagen {i + 1}
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </>
+  );
+};
+
+// ─── Editor de imágenes (modo editar) ────────────────
+const ImagenEditor = ({ imagenesActuales, onChange }) => {
+  const [imagenesLocales, setImagenesLocales] = useState(
+    imagenesActuales?.map((img) => ({ url: img.url, tipo: img.tipo })) || []
+  );
+  const [uploading, setUploading] = useState({});
+  const [preview, setPreview] = useState(null);
+
+  useEffect(() => {
+    onChange(imagenesLocales);
+  }, [imagenesLocales]);
+
+  const handleEliminar = (url) => {
+    setImagenesLocales((prev) => prev.filter((img) => img.url !== url));
+  };
+
+  const handleAgregar = async (e, tipo) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setUploading((prev) => ({ ...prev, [tipo]: true }));
+    try {
+      const urls = await Promise.all(files.map(uploadToCloudinary));
+      setImagenesLocales((prev) => [...prev, ...urls.map((url) => ({ url, tipo }))]);
+    } catch (err) {
+      console.error("Error subiendo imágenes:", err);
+    } finally {
+      setUploading((prev) => ({ ...prev, [tipo]: false }));
+      e.target.value = "";
+    }
+  };
+
+  const porTipo = TIPOS.reduce((acc, tipo) => {
+    acc[tipo] = imagenesLocales.filter((img) => img.tipo === tipo);
+    return acc;
+  }, {});
+
+  return (
+    <>
+      {preview && (
+        <div
+          onClick={() => setPreview(null)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 1000,
+            background: "rgba(0,0,0,0.90)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "zoom-out",
+          }}
+        >
+          <img src={preview} alt="Preview"
+            style={{ maxWidth: "90vw", maxHeight: "85vh", borderRadius: "12px" }}
+          />
+        </div>
+      )}
+
+      {TIPOS.map((tipo) => {
+        const imgs = porTipo[tipo];
+        const c = TIPO_COLOR[tipo];
+        const isUploading = uploading[tipo];
+
+        return (
+          <div key={tipo} style={{ marginBottom: "24px" }}>
+            {/* Header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{
+                  fontSize: "11px", fontFamily: "DM Mono, monospace",
+                  textTransform: "uppercase", letterSpacing: "0.5px",
+                  padding: "3px 10px", borderRadius: "20px",
+                  background: c.bg, color: c.color, border: `1px solid ${c.border}`,
+                }}>
+                  {TIPO_LABEL[tipo]}
+                </span>
+                <span style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "DM Mono, monospace" }}>
+                  {imgs.length} imagen{imgs.length !== 1 ? "es" : ""}
+                </span>
+              </div>
+
+              <label style={{
+                display: "inline-flex", alignItems: "center", gap: "6px",
+                padding: "5px 12px", borderRadius: "6px",
+                cursor: isUploading ? "not-allowed" : "pointer",
+                background: c.bg, color: c.color, border: `1px solid ${c.border}`,
+                fontSize: "12px", fontWeight: 600, fontFamily: "Sora, sans-serif",
+                opacity: isUploading ? 0.6 : 1, transition: "all 0.18s ease",
+              }}>
+                {isUploading ? "⏳ Subiendo..." : "+ Agregar"}
+                <input
+                  type="file" multiple accept="image/*"
+                  style={{ display: "none" }}
+                  disabled={isUploading}
+                  onChange={(e) => handleAgregar(e, tipo)}
+                />
+              </label>
+            </div>
+
+            {/* Grid */}
+            {imgs.length === 0 ? (
+              <div style={{
+                border: `1px dashed ${c.border}`, borderRadius: "10px",
+                padding: "18px", textAlign: "center",
+                color: "var(--text-muted)", fontSize: "13px",
+              }}>
+                Sin imágenes · presiona "+ Agregar" para subir
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
+                {imgs.map((img, i) => (
+                  <div key={img.url + i} style={{ display: "flex", flexDirection: "column", gap: "6px", width: "110px" }}>
+                    {/* Miniatura */}
+                    <div style={{ position: "relative", width: "110px", height: "110px" }}>
+                      <img
+                        src={img.url}
+                        alt=""
+                        onClick={() => setPreview(img.url)}
+                        style={{
+                          width: "100%", height: "100%", objectFit: "cover",
+                          borderRadius: "10px", cursor: "zoom-in",
+                          border: `1px solid ${c.border}`,
+                        }}
+                      />
+                      {/* X eliminar */}
+                      <button
+                        onClick={() => handleEliminar(img.url)}
+                        title="Eliminar imagen"
+                        style={{
+                          position: "absolute", top: "4px", right: "4px",
+                          width: "22px", height: "22px", borderRadius: "50%",
+                          background: "rgba(255,77,109,0.92)", color: "white",
+                          border: "none", cursor: "pointer",
+                          fontSize: "11px", fontWeight: 700,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+                          transition: "transform 0.15s ease",
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.2)"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    {/* Link debajo */}
+                    <a
+                      href={img.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        fontSize: "11px", color: c.color,
+                        textDecoration: "none", fontFamily: "DM Mono, monospace",
+                        textAlign: "center",
+                        overflow: "hidden", textOverflow: "ellipsis",
+                        whiteSpace: "nowrap", display: "block",
+                        padding: "2px 4px", borderRadius: "4px",
+                        background: c.bg, border: `1px solid ${c.border}`,
+                      }}
+                      title={img.url}
+                    >
+                      🔗 Ver imagen {i + 1}
+                    </a>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </>
+  );
+};
+
+// ─── Componente principal ─────────────────────────────
 const CasoDetalle = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -12,10 +369,11 @@ const CasoDetalle = () => {
   const [editMode, setEditMode] = useState(false);
   const [registros, setRegistros] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [imagenesEdit, setImagenesEdit] = useState([]);
 
   const [form, setForm] = useState({
     nombreCaso: "", diagnostico: "", planTratamiento: "", examenAuxiliar: "",
-    proformaUrl: "", odontogramaUrl: "", costoTotal: "", fechaInicio: "", fechaFin: "", estado: "ACTIVO",
+    proformaUrl: "", costoTotal: "", fechaInicio: "", fechaFin: "", estado: "ACTIVO",
   });
 
   const [regForm, setRegForm] = useState({
@@ -30,27 +388,39 @@ const CasoDetalle = () => {
     return `${d}/${m}/${y}`;
   };
 
-  const fetchCaso = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`http://localhost:8080/api/casos/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = res.data;
-      setCaso(data);
-      setForm({
-        nombreCaso: data.nombreCaso || "", diagnostico: data.diagnostico || "",
-        planTratamiento: data.planTratamiento || "", examenAuxiliar: data.examenAuxiliar || "",
-        proformaUrl: data.proformaUrl || "", odontogramaUrl: data.odontogramaUrl || "",
-        costoTotal: data.costoTotal || "", fechaInicio: data.fechaInicio || "",
-        fechaFin: data.fechaFin || "", estado: data.estado || "ACTIVO",
-      });
-    } catch (error) {
-      console.error("Error cargando caso:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+ const fetchCaso = async () => {
+  try {
+    setLoading(true);
+    const res = await axios.get(`http://localhost:8080/api/casos/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const data = res.data;
+
+    // 🔍 DEBUG REAL
+    console.log("CASO COMPLETO:", data);
+    console.log("IMAGENES:", data.imagenes);
+
+    setCaso(data);
+
+    setForm({
+      nombreCaso: data.nombreCaso || "",
+      diagnostico: data.diagnostico || "",
+      planTratamiento: data.planTratamiento || "",
+      examenAuxiliar: data.examenAuxiliar || "",
+      proformaUrl: data.proformaUrl || "",
+      costoTotal: data.costoTotal || "",
+      fechaInicio: data.fechaInicio || "",
+      fechaFin: data.fechaFin || "",
+      estado: data.estado || "ACTIVO",
+    });
+
+  } catch (error) {
+    console.error("Error cargando caso:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const fetchRegistros = async () => {
     try {
@@ -67,8 +437,13 @@ const CasoDetalle = () => {
   const handleUpdate = async () => {
     try {
       if (!form.diagnostico.trim()) { alert("El diagnóstico no puede estar vacío"); return; }
-      await axios.put(`http://localhost:8080/api/casos/${id}`,
-        { ...form, costoTotal: Number(form.costoTotal) },
+      await axios.put(
+        `http://localhost:8080/api/casos/${id}`,
+        {
+          ...form,
+          costoTotal: Number(form.costoTotal),
+          imagenes: imagenesEdit.map((img) => ({ url: img.url, tipo: img.tipo })),
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setEditMode(false);
@@ -76,6 +451,17 @@ const CasoDetalle = () => {
     } catch (error) {
       console.error("Error actualizando caso:", error);
     }
+  };
+
+  const handleCancelar = () => {
+    setEditMode(false);
+    setForm({
+      nombreCaso: caso.nombreCaso || "", diagnostico: caso.diagnostico || "",
+      planTratamiento: caso.planTratamiento || "", examenAuxiliar: caso.examenAuxiliar || "",
+      proformaUrl: caso.proformaUrl || "", costoTotal: caso.costoTotal || "",
+      fechaInicio: caso.fechaInicio || "", fechaFin: caso.fechaFin || "",
+      estado: caso.estado || "ACTIVO",
+    });
   };
 
   const handleCreateRegistro = async () => {
@@ -131,11 +517,15 @@ const CasoDetalle = () => {
 
   const estadoBadge = (estado) => {
     if (estado === "ACTIVO") return <span className="badge badge-active">● Activo</span>;
-    return <span className="badge" style={{ background: "rgba(59,130,246,0.1)", color: "#60a5fa", border: "1px solid rgba(59,130,246,0.2)" }}>✓ Finalizado</span>;
+    return (
+      <span className="badge" style={{ background: "rgba(4,151,255,0.1)", color: "#60a5fa", border: "1px solid rgba(4,151,255,0.2)" }}>
+        ✓ Finalizado
+      </span>
+    );
   };
 
   const setReg = (field) => (e) => setRegForm((prev) => ({ ...prev, [field]: e.target.value }));
-  const setF = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  const setF   = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
   return (
     <div className="app-shell">
@@ -148,7 +538,7 @@ const CasoDetalle = () => {
         <div className="page-content">
           <button className="back-btn" onClick={() => navigate(-1)}>← Volver a Historia</button>
 
-          {/* CASO HEADER */}
+          {/* ── HEADER ── */}
           <div className="detail-header">
             <div className="detail-avatar" style={{ fontSize: "20px" }}>📋</div>
             <div style={{ flex: 1 }}>
@@ -172,69 +562,106 @@ const CasoDetalle = () => {
               ) : (
                 <>
                   <button className="btn btn-primary btn-sm" onClick={handleUpdate}>✓ Guardar</button>
-                  <button className="btn btn-ghost btn-sm" onClick={() => { setEditMode(false); fetchCaso(); }}>Cancelar</button>
+                  <button className="btn btn-ghost btn-sm" onClick={handleCancelar}>Cancelar</button>
                 </>
               )}
             </div>
           </div>
 
-          {/* CASO DATA */}
+          {/* ── DATOS ── */}
           <div className="card" style={{ marginBottom: "28px" }}>
             <div className="card-body">
               {editMode ? (
-                <div className="form-grid">
-                  {[
-                    { key: "nombreCaso", label: "Nombre del Caso", span: 2 },
-                    { key: "diagnostico", label: "Diagnóstico", span: 2 },
-                    { key: "planTratamiento", label: "Plan de Tratamiento", span: 2 },
-                    { key: "examenAuxiliar", label: "Examen Auxiliar" },
-                    { key: "costoTotal", label: "Costo Total", type: "number" },
-                    { key: "proformaUrl", label: "URL Proforma" },
-                    { key: "odontogramaUrl", label: "URL Odontograma" },
-                    { key: "fechaInicio", label: "Fecha Inicio", type: "date" },
-                    { key: "fechaFin", label: "Fecha Fin", type: "date" },
-                  ].map(({ key, label, type = "text", span }) => (
-                    <div className="form-group" key={key} style={span ? { gridColumn: `span ${span}` } : {}}>
-                      <label className="form-label">{label}</label>
-                      <input className="form-input" type={type} value={form[key] || ""} onChange={setF(key)} />
+                <>
+                  <div className="form-grid" style={{ marginBottom: "28px" }}>
+                    {[
+                      { key: "nombreCaso",      label: "Nombre del Caso",     span: 2 },
+                      { key: "diagnostico",     label: "Diagnóstico",         span: 2 },
+                      { key: "planTratamiento", label: "Plan de Tratamiento", span: 2 },
+                      { key: "examenAuxiliar",  label: "Examen Auxiliar" },
+                      { key: "costoTotal",      label: "Costo Total",         type: "number" },
+                      { key: "proformaUrl",     label: "Proforma",        span: 2 },
+                      { key: "fechaInicio",     label: "Fecha Inicio",        type: "date" },
+                      { key: "fechaFin",        label: "Fecha Fin",           type: "date" },
+                    ].map(({ key, label, type = "text", span }) => (
+                      <div className="form-group" key={key} style={span ? { gridColumn: `span ${span}` } : {}}>
+                        <label className="form-label">{label}</label>
+                        <input className="form-input" type={type} value={form[key] || ""} onChange={setF(key)} />
+                      </div>
+                    ))}
+                    <div className="form-group">
+                      <label className="form-label">Estado</label>
+                      <select className="form-input" value={form.estado} onChange={setF("estado")}>
+                        <option value="ACTIVO">ACTIVO</option>
+                        <option value="FINALIZADO">FINALIZADO</option>
+                      </select>
                     </div>
-                  ))}
-                  <div className="form-group">
-                    <label className="form-label">Estado</label>
-                    <select className="form-input" value={form.estado} onChange={setF("estado")}>
-                      <option value="ACTIVO">ACTIVO</option>
-                      <option value="FINALIZADO">FINALIZADO</option>
-                    </select>
                   </div>
-                </div>
-              ) : (
-                <div>
-                  {[
-                    { label: "Diagnóstico", value: caso.diagnostico },
-                    { label: "Plan de Tratamiento", value: caso.planTratamiento },
-                    { label: "Examen Auxiliar", value: caso.examenAuxiliar },
-                    { label: "Proforma", value: caso.proformaUrl, isUrl: true },
-                    { label: "Odontograma", value: caso.odontogramaUrl, isUrl: true },
-                    { label: "Fecha Inicio", value: formatFecha(caso.fechaInicio) },
-                    { label: "Fecha Fin", value: caso.fechaFin ? formatFecha(caso.fechaFin) : "Sin fecha" },
-                    { label: "Costo Total", value: caso.costoTotal ? `S/ ${Number(caso.costoTotal).toLocaleString("es-PE", { minimumFractionDigits: 2 })}` : "—" },
-                  ].map(({ label, value, isUrl }) => (
-                    <div className="info-row" key={label}>
-                      <span className="info-label">{label}</span>
-                      <span className="info-value">
-                        {isUrl && value
-                          ? <a href={value} target="_blank" rel="noreferrer" style={{ color: "var(--accent)", textDecoration: "none" }}>🔗 Ver</a>
-                          : (value || "—")
-                        }
-                      </span>
+
+                  {/* Editor imágenes */}
+                  <div style={{ borderTop: "1px solid var(--border)", paddingTop: "24px" }}>
+                    <div style={{
+                      fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase",
+                      letterSpacing: "0.5px", fontFamily: "DM Mono, monospace", marginBottom: "20px",
+                      display: "flex", alignItems: "center", gap: "8px",
+                    }}>
+                      <span style={{
+                        width: "3px", height: "14px", display: "inline-block", borderRadius: "2px",
+                        background: "linear-gradient(180deg, var(--accent), var(--accent-secondary))",
+                      }} />
+                      Imágenes del Caso
                     </div>
-                  ))}
-                </div>
+                    <ImagenEditor imagenesActuales={caso.imagenes || []} onChange={setImagenesEdit} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Vista datos */}
+                  <div style={{ marginBottom: caso.imagenes?.length > 0 ? "24px" : 0 }}>
+                    {[
+                      { label: "Diagnóstico",         value: caso.diagnostico },
+                      { label: "Plan de Tratamiento", value: caso.planTratamiento },
+                      { label: "Examen Auxiliar",     value: caso.examenAuxiliar },
+                      { label: "Proforma",            value: caso.proformaUrl},
+                      { label: "Fecha Inicio",        value: formatFecha(caso.fechaInicio) },
+                      { label: "Fecha Fin",           value: caso.fechaFin ? formatFecha(caso.fechaFin) : "Sin fecha" },
+                      { label: "Costo Total",         value: caso.costoTotal ? `S/ ${Number(caso.costoTotal).toLocaleString("es-PE", { minimumFractionDigits: 2 })}` : "—" },
+                    ].map(({ label, value, isUrl }) => (
+                      <div className="info-row" key={label}>
+                        <span className="info-label">{label}</span>
+                        <span className="info-value">
+                          {isUrl && value
+                            ? <a href={value} target="_blank" rel="noreferrer" style={{ color: "var(--accent)", textDecoration: "none" }}>🔗 Ver</a>
+                            : (value || "—")
+                          }
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Galería solo lectura */}
+                  {caso.imagenes?.length > 0 && (
+                    <div style={{ borderTop: "1px solid var(--border)", paddingTop: "20px" }}>
+                      <div style={{
+                        fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase",
+                        letterSpacing: "0.5px", fontFamily: "DM Mono, monospace", marginBottom: "16px",
+                        display: "flex", alignItems: "center", gap: "8px",
+                      }}>
+                        <span style={{
+                          width: "3px", height: "14px", display: "inline-block", borderRadius: "2px",
+                          background: "linear-gradient(180deg, var(--accent), var(--accent-secondary))",
+                        }} />
+                        Imágenes del Caso
+                      </div>
+                      <ImagenGallery imagenes={caso.imagenes} />
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
 
-          {/* REGISTROS */}
+          {/* ── REGISTROS ── */}
           <div className="section-header">
             <h3 className="section-title" style={{ fontSize: "17px" }}>
               <span className="dot" />
@@ -248,7 +675,6 @@ const CasoDetalle = () => {
             </button>
           </div>
 
-          {/* REGISTRO FORM */}
           {showForm && (
             <div className="form-section" style={{ marginBottom: "20px" }}>
               <div className="form-section-title" style={{ fontSize: "14px" }}>Nuevo Registro de Atención</div>
@@ -285,7 +711,6 @@ const CasoDetalle = () => {
             </div>
           )}
 
-          {/* REGISTROS LIST */}
           {registros.length === 0 ? (
             <div className="empty-state" style={{ padding: "40px" }}>
               <div className="empty-state-icon">📝</div>

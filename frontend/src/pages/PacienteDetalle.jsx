@@ -12,8 +12,8 @@ const FIELD_LABELS = {
   telefono: "Teléfono",
   direccion: "Dirección",
   email: "Email",
-  antecedentesMedicosUrl: "Antecedentes Médicos (URL)",
-  antecedentesOdontologicosUrl: "Antecedentes Odontológicos (URL)",
+  antecedentesMedicosUrl: "Antecedentes Médicos",
+  antecedentesOdontologicosUrl: "Antecedentes Odontológicos",
   fechaRegistro: "Fecha de Registro",
 };
 
@@ -135,8 +135,7 @@ const PacienteDetalle = () => {
         <span className="info-value">
           {key === "antecedentesMedicosUrl" || key === "antecedentesOdontologicosUrl"
             ? value
-              ? <a href={value} target="_blank" rel="noreferrer" style={{ color: "var(--accent)", textDecoration: "none" }}>🔗 Ver documento</a>
-              : "—"
+              
             : displayValue
           }
         </span>
