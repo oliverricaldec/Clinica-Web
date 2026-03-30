@@ -2,10 +2,12 @@ package com.clinica.api.web.dto.update;
 
 
 import com.clinica.api.modules.casos.domain.enums.EstadoCaso;
+import com.clinica.api.web.dto.request.CasoImagenRequest;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 public record CasoUpdateRequest(
 
@@ -24,8 +26,8 @@ public record CasoUpdateRequest(
         @Size(max = 500, message = "Maximo 500 caracteres")
         String proformaUrl,
 
-        @Size(max = 500, message = "Maximo 500 caracteres")
-        String odontogramaUrl,
+        // CasoUpdateRequest.java — agrega este campo
+        List<CasoImagenRequest> imagenes,
 
         @DecimalMin(value = "0.0", message = "No numeros negativos")
         @Digits(integer = 10, fraction = 2)

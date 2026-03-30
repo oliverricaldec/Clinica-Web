@@ -5,6 +5,7 @@ import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Builder
 public record CasoResponse(
@@ -15,7 +16,7 @@ public record CasoResponse(
         String planTratamiento,
         String examenAuxiliar,
         String proformaUrl,
-        String odontogramaUrl,
+        List<CasoImagenResponse> imagenes,
         BigDecimal costoTotal,
         LocalDate fechaInicio,
         LocalDate fechaFin,

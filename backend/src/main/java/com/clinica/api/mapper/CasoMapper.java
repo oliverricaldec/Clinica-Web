@@ -1,25 +1,43 @@
 package com.clinica.api.mapper;
 
+import com.clinica.api.modules.casoImagen.domain.entity.CasoImagen;
 import com.clinica.api.modules.casos.domain.entity.Caso;
 import com.clinica.api.web.dto.request.CasoCreateRequest;
+import com.clinica.api.web.dto.request.CasoImagenRequest;
+import com.clinica.api.web.dto.response.CasoImagenResponse;
 import com.clinica.api.web.dto.response.CasoResponse;
 import com.clinica.api.web.dto.update.CasoUpdateRequest;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class CasoMapper {
 
-    public Caso toEntity(CasoCreateRequest request){
-        return Caso.builder()
+    public Caso toEntity(CasoCreateRequest request) {
+        Caso caso = Caso.builder()
                 .nombreCaso(request.nombreCaso())
                 .diagnostico(request.diagnostico())
                 .planTratamiento(request.planTratamiento())
                 .examenAuxiliar(request.examenAuxiliar())
                 .proforma(request.proformaUrl())
-                .odontograma(request.odontogramaUrl())
                 .costoTotal(request.costoTotal())
                 .fechaInicio(request.fechaInicio())
                 .build();
+
+        if (request.imagenes() != null) {
+            List<CasoImagen> imgs = request.imagenes().stream().map(img -> {
+                CasoImagen ci = new CasoImagen();
+                ci.setUrl(img.url());
+                ci.setTipo(img.tipo());
+                ci.setCaso(caso); // 🔥 CLAVE
+                return ci;
+            }).toList();
+
+            caso.setImagenes(imgs);
+        }
+
+        return caso;
     }
 
     public CasoResponse toResponse(Caso caso){
@@ -30,12 +48,23 @@ public class CasoMapper {
                 .planTratamiento(caso.getPlanTratamiento())
                 .examenAuxiliar(caso.getExamenAuxiliar())
                 .proformaUrl(caso.getProforma())
-                .odontogramaUrl(caso.getOdontograma())
                 .costoTotal(caso.getCostoTotal())
                 .fechaInicio(caso.getFechaInicio())
                 .fechaFin(caso.getFechaFin())
                 .estado(caso.getEstado())
                 .idHistoriaClinica(caso.getHistoriaClinica().getId())
+
+                // ESTO ES LO QUE TE FALTA
+                .imagenes(
+                        caso.getImagenes() == null ? List.of() :
+                                caso.getImagenes().stream()
+                                        .map(img -> new CasoImagenResponse(
+                                                img.getUrl(),
+                                                img.getTipo()
+                                        ))
+                                        .toList()
+                )
+
                 .build();
     }
 
@@ -55,9 +84,6 @@ public class CasoMapper {
 
         if (request.proformaUrl() != null)
             caso.setProforma(request.proformaUrl());
-
-        if (request.odontogramaUrl() != null)
-            caso.setOdontograma(request.odontogramaUrl());
 
         if (request.costoTotal() != null)
             caso.setCostoTotal(request.costoTotal());

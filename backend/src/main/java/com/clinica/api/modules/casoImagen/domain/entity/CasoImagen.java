@@ -1,5 +1,6 @@
-package com.clinica.api.modules.casoImagen.entity;
+package com.clinica.api.modules.casoImagen.domain.entity;
 
+import com.clinica.api.modules.casoImagen.domain.enums.TipoImagen;
 import com.clinica.api.modules.casos.domain.entity.Caso;
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,7 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @Table(
-        name = "casoImagen"
+        name = "caso_imagen"
 )
 public class CasoImagen {
 
@@ -22,9 +23,11 @@ public class CasoImagen {
     @Column(nullable = false)
     private String url;
 
-    private String descripcion;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoImagen tipo;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "caso_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "caso_id",nullable = false)
     private Caso caso;
 }

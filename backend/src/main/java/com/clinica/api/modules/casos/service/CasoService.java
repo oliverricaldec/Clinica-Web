@@ -2,6 +2,7 @@ package com.clinica.api.modules.casos.service;
 
 import com.clinica.api.exception.ResourceNotFoundException;
 import com.clinica.api.mapper.CasoMapper;
+import com.clinica.api.modules.casoImagen.domain.entity.CasoImagen;
 import com.clinica.api.modules.casos.domain.entity.Caso;
 import com.clinica.api.modules.casos.domain.enums.EstadoCaso;
 import com.clinica.api.modules.casos.repository.CasoRepository;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +37,17 @@ public class CasoService {
         caso.setHistoriaClinica(historiaClinica);
         caso.setEstado(EstadoCaso.ACTIVO);
 
+        if (request.imagenes() !=null){
+            List<CasoImagen> imgs = request.imagenes().stream()
+                    .map(imgReq -> CasoImagen.builder()
+                            .url(imgReq.url())
+                            .tipo(imgReq.tipo())
+                            .caso(caso)
+                            .build()).toList();
+
+            caso.setImagenes(imgs);
+        }
+
         Caso guardado = casoRepository.save(caso);
 
         return casoMapper.toResponse(guardado);
@@ -46,6 +59,21 @@ public class CasoService {
                 .orElseThrow(()-> new ResourceNotFoundException("Caso no encontrado"+id));
 
         casoMapper.updateEntity(caso, request);
+
+        if (request.imagenes() != null && !request.imagenes().isEmpty()) {
+            caso.getImagenes().clear();
+
+            List<CasoImagen> nuevas = request.imagenes().stream().map(img -> {
+                CasoImagen ci = new CasoImagen();
+                ci.setUrl(img.url());
+                ci.setTipo(img.tipo());
+                ci.setCaso(caso);
+                return ci;
+            }).toList();
+
+            caso.getImagenes().addAll(nuevas);
+        }
+
         Caso actualizado = casoRepository.save(caso);
         return casoMapper.toResponse(actualizado);
     }

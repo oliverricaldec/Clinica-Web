@@ -1,5 +1,6 @@
 package com.clinica.api.modules.casos.domain.entity;
 
+import com.clinica.api.modules.casoImagen.domain.entity.CasoImagen;
 import com.clinica.api.modules.casos.domain.enums.EstadoCaso;
 import com.clinica.api.modules.historiaClinica.domain.entity.HistoriaClinica;
 import com.clinica.api.modules.registros.domain.entity.Registro;
@@ -38,11 +39,10 @@ public class Caso {
     @Column(name = "examen_auxiliar")
     private String examenAuxiliar;
 
+    //a futuro quitar la palabra url Y ADEMAS ES PRESUPUESTO
     @Column(name = "proforma_url")
     private String proforma;
 
-    @Column(name = "odontograma_url")
-    private String odontograma;
 
     @Column(nullable = false, name = "costo_total")
     private BigDecimal costoTotal;
@@ -66,4 +66,7 @@ public class Caso {
 
     @OneToMany(mappedBy = "caso",cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Registro> registros = new ArrayList<>();
+
+    @OneToMany(mappedBy = "caso", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<CasoImagen> imagenes = new ArrayList<>();
 }

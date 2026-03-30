@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 public record CasoCreateRequest(
 
@@ -25,8 +26,7 @@ public record CasoCreateRequest(
         @Size(max = 500)
         String proformaUrl,
 
-        @Size(max = 500)
-        String odontogramaUrl,
+        List<CasoImagenRequest> imagenes,
 
         @NotNull(message = "El costo total es obligatorio")
         @DecimalMin(value = "0.0", inclusive = false, message = "El costo debe ser mayor a 0")
