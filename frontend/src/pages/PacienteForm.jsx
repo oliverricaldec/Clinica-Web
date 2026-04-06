@@ -1,6 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
 
+const API = import.meta.env.VITE_API_URL;
+
 const PacienteForm = ({ onSuccess }) => {
   const [form, setForm] = useState({
     dni: "",
@@ -25,7 +27,7 @@ const PacienteForm = ({ onSuccess }) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post("http://localhost:8080/api/pacientes", form, {
+      await axios.post(`${API}/api/pacientes`, form, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setForm({

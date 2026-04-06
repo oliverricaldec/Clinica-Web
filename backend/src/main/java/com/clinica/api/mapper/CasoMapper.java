@@ -30,7 +30,7 @@ public class CasoMapper {
                 CasoImagen ci = new CasoImagen();
                 ci.setUrl(img.url());
                 ci.setTipo(img.tipo());
-                ci.setCaso(caso); // 🔥 CLAVE
+                ci.setCaso(caso); //  CLAVE
                 return ci;
             }).toList();
 

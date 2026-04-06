@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import PacienteForm from "./PacienteForm";
 import Sidebar from "../components/Sidebar";
 
+const API = import.meta.env.VITE_API_URL;
+
 const Pacientes = () => {
   const [pacientes, setPacientes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,7 +17,7 @@ const Pacientes = () => {
   const fetchPacientes = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:8080/api/pacientes", {
+      const res = await axios.get(`${API}/api/pacientes`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setPacientes(Array.isArray(res.data.data) ? res.data.data : res.data);
@@ -30,7 +32,7 @@ const Pacientes = () => {
     e.stopPropagation();
     if (!window.confirm("¿Eliminar paciente?")) return;
     try {
-      await axios.delete(`http://localhost:8080/api/pacientes/${id}`, {
+      await axios.delete(`${API}/api/pacientes/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchPacientes();

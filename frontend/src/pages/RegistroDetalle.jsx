@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Sidebar from "../components/Sidebar";
 
+const API = import.meta.env.VITE_API_URL;
+
 const RegistroDetalle = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -27,7 +29,7 @@ const RegistroDetalle = () => {
   const fetchRegistro = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`http://localhost:8080/api/registros/${id}`, {
+      const res = await axios.get(`${API}/api/registros/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = res.data;
@@ -51,7 +53,7 @@ const RegistroDetalle = () => {
     try {
       if (!form.evolucion.trim()) { alert("La evolución es obligatoria"); return; }
       await axios.put(
-        `http://localhost:8080/api/registros/${id}`,
+        `${API}/api/registros/${id}`,
         {
           fechaAtencion: form.fechaAtencion,
           evolucion: form.evolucion,

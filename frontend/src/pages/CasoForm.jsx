@@ -1,6 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
 
+const API = import.meta.env.VITE_API_URL;
+
 const CasoForm = ({ hcId, onSuccess, onCancel }) => {
   const [form, setForm] = useState({
     nombreCaso: "",
@@ -79,7 +81,7 @@ const CasoForm = ({ hcId, onSuccess, onCancel }) => {
       );
 
       await axios.post(
-        `http://localhost:8080/api/casos/historiasClinicas/${hcId}/casos`,
+        `${API}/api/casos/historiasClinicas/${hcId}/casos`,
         {
           ...form,
           costoTotal: Number(form.costoTotal),

@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Sidebar from "../components/Sidebar";
 
+const API = import.meta.env.VITE_API_URL;
+
 const FIELD_LABELS = {
   dni: "DNI",
   nombres: "Nombres",
@@ -31,7 +33,7 @@ const PacienteDetalle = () => {
 
   const fetchPaciente = async () => {
     try {
-      const res = await axios.get(`http://localhost:8080/api/pacientes/${id}`, {
+      const res = await axios.get(`${API}/api/pacientes/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setPaciente(res.data);
@@ -45,7 +47,7 @@ const PacienteDetalle = () => {
 
   const handleUpdate = async () => {
     try {
-      await axios.put(`http://localhost:8080/api/pacientes/${id}`, form, {
+      await axios.put(`${API}/api/pacientes/${id}`, form, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setEditMode(false);

@@ -5,6 +5,8 @@ import CasoForm from "./CasoForm";
 import Sidebar from "../components/Sidebar";
 import axios from "axios";
 
+const API = import.meta.env.VITE_API_URL;
+
 const HistoriaClinica = () => {
   const { id } = useParams();
   const [loading, setLoading] = useState(true);
@@ -19,7 +21,7 @@ const HistoriaClinica = () => {
       setLoading(true);
       const token = localStorage.getItem("token");
       const res = await axios.get(
-        `http://localhost:8080/api/casos/historiasClinicas/${id}?page=${page}&size=5`,
+        `${API}/api/casos/historiasClinicas/${id}?page=${page}&size=5`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -43,7 +45,7 @@ const HistoriaClinica = () => {
         casosList.map(async (caso) => {
           try {
             const res = await axios.get(
-              `http://localhost:8080/api/registros/caso/${caso.id}`,
+              `${API}/api/registros/caso/${caso.id}`,
               {
                 headers: { Authorization: `Bearer ${token}` },
               }
@@ -83,7 +85,7 @@ const HistoriaClinica = () => {
     if (!window.confirm("¿Eliminar este caso?")) return;
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:8080/api/casos/${casoId}`, {
+      await axios.delete(`${API}/api/casos/${casoId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchCasos();

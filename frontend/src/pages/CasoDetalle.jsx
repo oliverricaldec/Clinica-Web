@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Sidebar from "../components/Sidebar";
 
+const API = import.meta.env.VITE_API_URL;
+
 // ─── Cloudinary upload ────────────────────────────────
 const uploadToCloudinary = async (file) => {
   const formData = new FormData();
@@ -391,7 +393,7 @@ const CasoDetalle = () => {
  const fetchCaso = async () => {
   try {
     setLoading(true);
-    const res = await axios.get(`http://localhost:8080/api/casos/${id}`, {
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/casos/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -424,7 +426,7 @@ const CasoDetalle = () => {
 
   const fetchRegistros = async () => {
     try {
-      const res = await axios.get(`http://localhost:8080/api/registros/caso/${id}`, {
+      const res = await axios.get(`${API}/api/registros/caso/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setRegistros(Array.isArray(res.data.data) ? res.data.data : []);
@@ -438,7 +440,7 @@ const CasoDetalle = () => {
     try {
       if (!form.diagnostico.trim()) { alert("El diagnóstico no puede estar vacío"); return; }
       await axios.put(
-        `http://localhost:8080/api/casos/${id}`,
+        `${API}/api/casos/${id}`,
         {
           ...form,
           costoTotal: Number(form.costoTotal),
@@ -467,7 +469,7 @@ const CasoDetalle = () => {
   const handleCreateRegistro = async () => {
     try {
       await axios.post(
-        `http://localhost:8080/api/registros/casos/${id}/registros`,
+        `${API}/api/registros/casos/${id}/registros`,
         {
           fechaAtencion: regForm.fechaAtencion,
           evolucion: regForm.evolucion,
@@ -489,7 +491,7 @@ const CasoDetalle = () => {
   const handleDeleteRegistro = async (registroId) => {
     if (!window.confirm("¿Eliminar este registro?")) return;
     try {
-      await axios.delete(`http://localhost:8080/api/registros/${registroId}`, {
+      await axios.delete(`${API}/api/registros/${registroId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchRegistros();
