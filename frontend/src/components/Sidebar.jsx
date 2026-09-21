@@ -29,7 +29,15 @@ const Sidebar = () => {
           className={`sidebar-item ${isActive("/pacientes") ? "active" : ""}`}
           onClick={() => navigate("/pacientes")}
         >
-          <span>👥</span> Pacientes
+          <span>👤</span> Pacientes
+        </button>
+        
+        {/* NUEVO ITEM */}
+        <button
+          className={`sidebar-item ${isActive("/calendario") ? "active" : ""}`}
+          onClick={() => navigate("/calendario")}
+        >
+          <span>📅</span> Calendario
         </button>
       </nav>
 

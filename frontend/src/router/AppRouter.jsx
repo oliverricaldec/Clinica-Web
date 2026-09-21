@@ -6,7 +6,7 @@ import HistoriaClinica from "../pages/HistoriaClinica";
 import CasoDetalle from "../pages/CasoDetalle";
 import RegistroDetalle from "../pages/RegistroDetalle";
 import PacienteDetalle from "../pages/PacienteDetalle";
-
+import Calendario from "../pages/Calendario";
 
 function AppRouter() {
   return (
@@ -60,6 +60,15 @@ function AppRouter() {
           element={
             <PrivateRoute>
               <RegistroDetalle />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/calendario"
+          element={
+            <PrivateRoute>
+              <Calendario />
             </PrivateRoute>
           }
         />

@@ -1,17 +1,65 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import PacienteForm from "./PacienteForm";
+import axios from "axios";
 import Sidebar from "../components/Sidebar";
+import PacienteForm from "./PacienteForm";
 
 const API = import.meta.env.VITE_API_URL;
 
+// Componentes de Íconos SVG
+const SearchIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8"></circle>
+    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+  </svg>
+);
+
+const UserPlusIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+    <circle cx="8.5" cy="7" r="4"></circle>
+    <line x1="20" y1="8" x2="20" y2="14"></line>
+    <line x1="23" y1="11" x2="17" y2="11"></line>
+  </svg>
+);
+
+const EyeIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+    <circle cx="12" cy="12" r="3"></circle>
+  </svg>
+);
+
+const FileTextIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+    <polyline points="14 2 14 8 20 8"></polyline>
+    <line x1="16" y1="13" x2="8" y2="13"></line>
+    <line x1="16" y1="17" x2="8" y2="17"></line>
+    <polyline points="10 9 9 9 8 9"></polyline>
+  </svg>
+);
+
+const TrashIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6"></polyline>
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+  </svg>
+);
+
+const UserIcon = () => (
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+    <circle cx="12" cy="7" r="4"></circle>
+  </svg>
+);
+
 const Pacientes = () => {
-  const [pacientes, setPacientes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [showForm, setShowForm] = useState(false);
   const navigate = useNavigate();
+  const [pacientes, setPacientes] = useState([]);
+  const [busqueda, setBusqueda] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
   const token = localStorage.getItem("token");
 
   const fetchPacientes = async () => {
@@ -20,194 +68,247 @@ const Pacientes = () => {
       const res = await axios.get(`${API}/api/pacientes`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setPacientes(Array.isArray(res.data.data) ? res.data.data : res.data);
-    } catch (error) {
-      console.error("Error cargando pacientes:", error);
+      const data = Array.isArray(res.data.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
+      setPacientes(data);
+    } catch (err) {
+      console.error("Error al cargar pacientes:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id, e) => {
-    e.stopPropagation();
-    if (!window.confirm("¿Eliminar paciente?")) return;
+  useEffect(() => {
+    fetchPacientes();
+  }, []);
+
+  const handleEliminarPaciente = async (id, nombre) => {
+    if (!window.confirm(`¿Estás seguro de eliminar al paciente ${nombre}?`)) return;
     try {
       await axios.delete(`${API}/api/pacientes/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchPacientes();
-    } catch (error) {
-      console.error("Error eliminando:", error);
+    } catch (err) {
+      console.error("Error al eliminar paciente:", err);
+      alert("No se pudo eliminar el paciente.");
     }
   };
 
-  useEffect(() => { fetchPacientes(); }, []);
-
-  const filtered = pacientes.filter((p) => {
-    const q = search.toLowerCase();
+  const pacientesFiltrados = pacientes.filter((p) => {
+    const termino = busqueda.toLowerCase();
+    const nombreCompleto = `${p.nombres} ${p.apellidos}`.toLowerCase();
     return (
-      p.nombres?.toLowerCase().includes(q) ||
-      p.apellidos?.toLowerCase().includes(q) ||
-      p.dni?.toLowerCase().includes(q) ||
-      p.telefono?.toLowerCase().includes(q)
+      nombreCompleto.includes(termino) ||
+      p.dni?.includes(termino) ||
+      p.telefono?.includes(termino) ||
+      p.email?.toLowerCase().includes(termino)
     );
   });
 
-  const getInitials = (nombres, apellidos) => {
-    const n = nombres?.[0] || "";
-    const a = apellidos?.[0] || "";
-    return (n + a).toUpperCase();
+  const formatFecha = (fechaStr) => {
+    if (!fechaStr) return "-";
+    const [y, m, d] = fechaStr.split("-");
+    return `${d}/${m}/${y}`;
   };
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" style={{ maxWidth: "100%", padding: "0 20px" }}>
       <Sidebar />
-
-      <div className="main-content">
-        {/* TOPBAR */}
+      <div className="main-content" style={{ width: "100%", maxWidth: "100%" }}>
         <div className="topbar">
           <span className="topbar-title">Gestión de Pacientes</span>
           <div className="topbar-right">
-            <span style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "var(--mono)" }}>
-              {filtered.length} paciente{filtered.length !== 1 ? "s" : ""}
+            <span style={{ fontSize: "13px", color: "var(--text-muted)", fontFamily: "DM Mono, monospace" }}>
+              Total: {pacientes.length} pacientes
             </span>
           </div>
         </div>
 
-        <div className="page-content">
-
-          {/* STATS */}
-          <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-value">{pacientes.length}</div>
-              <div className="stat-label">Total Pacientes</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-value">{pacientes.filter(p => p.sexo === "M").length}</div>
-              <div className="stat-label">Masculino</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-value">{pacientes.filter(p => p.sexo === "F").length}</div>
-              <div className="stat-label">Femenino</div>
-            </div>
-          </div>
-
-          {/* ACTIONS */}
-          <div className="section-header">
-            <h2 className="section-title">
+        <div className="page-content" style={{ maxWidth: "100%", padding: "20px 0" }}>
+          {/* Encabezado con buscador y toggle para nuevo paciente */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "20px",
+              gap: "16px",
+              flexWrap: "wrap",
+            }}
+          >
+            <h2 className="section-title" style={{ margin: 0, fontSize: "22px" }}>
               <span className="dot" />
-              Pacientes
+              Directorio de Pacientes
             </h2>
-            <button
-              className="btn btn-primary"
-              onClick={() => setShowForm(!showForm)}
-            >
-              {showForm ? "✕ Cancelar" : "+ Nuevo Paciente"}
-            </button>
+
+            <div style={{ display: "flex", gap: "12px", alignItems: "center", flex: 1, maxWidth: "520px" }}>
+              <div style={{ position: "relative", width: "100%" }}>
+                <span
+                  style={{
+                    position: "absolute",
+                    left: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "var(--text-muted)",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <SearchIcon />
+                </span>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="Buscar por DNI, Nombre, Teléfono o Email..."
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                  style={{ fontSize: "13px", height: "40px", paddingLeft: "36px" }}
+                />
+              </div>
+
+              <button
+                className="btn btn-primary"
+                style={{ padding: "0 18px", height: "40px", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "8px" }}
+                onClick={() => setShowForm(!showForm)}
+              >
+                <UserPlusIcon />
+                <span>{showForm ? "Cancelar" : "Nuevo Paciente"}</span>
+              </button>
+            </div>
           </div>
 
-          {/* FORM */}
+          {/* Formulario de creación desplegable */}
           {showForm && (
             <div style={{ marginBottom: "24px" }}>
               <PacienteForm
-                onSuccess={() => { fetchPacientes(); setShowForm(false); }}
+                onSuccess={() => {
+                  fetchPacientes();
+                  setShowForm(false);
+                }}
               />
             </div>
           )}
 
-          {/* SEARCH */}
-          <div className="search-bar">
-            <span className="search-icon">🔍</span>
-            <input
-              type="text"
-              placeholder="Buscar por nombre, apellido o DNI..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-
-          {/* LIST */}
-          {loading ? (
-            <div className="loading-spinner">
-              <div className="spinner" />
-              <span>Cargando pacientes...</span>
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-state-icon">🦷</div>
-              <p className="empty-state-text">
-                {search ? "No se encontraron coincidencias" : "No hay pacientes registrados aún"}
-              </p>
-            </div>
-          ) : (
-            <div className="patients-grid">
-              {filtered.map((p, i) => (
-                <div
-                  key={p.id}
-                  className={`patient-card stagger-${Math.min(i + 1, 5)}`}
-                  onClick={() => navigate(`/pacientes/${p.id}`)}
-                >
-                  {/* TOP ROW */}
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: "14px", marginBottom: "14px" }}>
-                    <div className="patient-avatar">{getInitials(p.nombres, p.apellidos)}</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="patient-name">{p.nombres} {p.apellidos}</div>
-                      <div className="patient-meta">DNI {p.dni}</div>
-                    </div>
-                    <span className={`badge ${p.sexo === "M" ? "badge-male" : "badge-female"}`}>
-                      {p.sexo === "M" ? "♂ Masc" : "♀ Fem"}
-                    </span>
-                  </div>
-
-                  {/* META */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "16px" }}>
-                    {p.telefono && (
-                      <div style={{ display: "flex", gap: "8px", fontSize: "13px", color: "var(--text-secondary)" }}>
-                        <span style={{ color: "var(--text-muted)" }}>📞</span>
-                        {p.telefono}
-                      </div>
-                    )}
-                    {p.email && (
-                      <div style={{ display: "flex", gap: "8px", fontSize: "13px", color: "var(--text-secondary)" }}>
-                        <span style={{ color: "var(--text-muted)" }}>✉️</span>
-                        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.email}</span>
-                      </div>
-                    )}
-                    {p.fechaRegistro && (
-                      <div style={{ display: "flex", gap: "8px", fontSize: "13px", color: "var(--text-secondary)" }}>
-                        <span style={{ color: "var(--text-muted)" }}>📅</span>
-                        Registrado: {p.fechaRegistro}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* ACTIONS */}
-                  <div style={{ display: "flex", gap: "8px" }} onClick={(e) => e.stopPropagation()}>
-                    <button
-                      className="btn btn-secondary btn-sm"
-                      style={{ flex: 1 }}
-                      onClick={() => navigate(`/pacientes/${p.id}`)}
-                    >
-                      Ver Detalle
-                    </button>
-                    <button
-                      className="btn btn-secondary btn-sm"
-                      style={{ flex: 1 }}
-                      onClick={() => navigate(`/historia/${p.historiaClinicaId}`)}
-                    >
-                      🗂 Historia
-                    </button>
-                    <button
-                      className="btn btn-danger btn-sm"
-                      onClick={(e) => handleDelete(p.id, e)}
-                    >
-                      🗑
-                    </button>
-                  </div>
+          {/* Tabla de Pacientes */}
+          <div className="card" style={{ padding: "0", width: "100%", overflow: "hidden" }}>
+            {loading ? (
+              <div className="loading-spinner" style={{ padding: "40px" }}>
+                <div className="spinner" />
+                <span>Cargando pacientes...</span>
+              </div>
+            ) : pacientesFiltrados.length === 0 ? (
+              <div className="empty-state" style={{ padding: "40px 10px" }}>
+                <div className="empty-state-icon" style={{ color: "var(--text-muted)", display: "flex", justifyContent: "center" }}>
+                  <UserIcon />
                 </div>
-              ))}
-            </div>
-          )}
+                <p className="empty-state-text" style={{ fontSize: "14px", marginTop: "10px" }}>
+                  No se encontraron pacientes registrados.
+                </p>
+              </div>
+            ) : (
+              <div style={{ width: "100%", overflowX: "auto" }}>
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    textAlign: "left",
+                    fontSize: "13px",
+                  }}
+                >
+                  <thead>
+                    <tr
+                      style={{
+                        background: "var(--bg-input)",
+                        borderBottom: "1px solid var(--border)",
+                        color: "var(--text-muted)",
+                        fontFamily: "DM Mono, monospace",
+                        fontSize: "11px",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                      }}
+                    >
+                      <th style={{ padding: "14px 16px" }}>DNI</th>
+                      <th style={{ padding: "14px 16px" }}>Paciente</th>
+                      <th style={{ padding: "14px 16px" }}>Teléfono</th>
+                      <th style={{ padding: "14px 16px" }}>Email</th>
+                      <th style={{ padding: "14px 16px" }}>F. Nacimiento</th>
+                      <th style={{ padding: "14px 16px" }}>F. Registro</th>
+                      <th style={{ padding: "14px 16px", textAlign: "right" }}>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pacientesFiltrados.map((p) => (
+                      <tr
+                        key={p.id}
+                        style={{
+                          borderBottom: "1px solid var(--border)",
+                          transition: "background 0.15s ease",
+                        }}
+                        className="table-row-hover"
+                      >
+                        <td style={{ padding: "14px 16px", fontFamily: "DM Mono, monospace", fontWeight: 600, color: "var(--accent)" }}>
+                          {p.dni}
+                        </td>
+                        <td style={{ padding: "14px 16px", fontWeight: 600, color: "var(--text-primary)" }}>
+                          {p.nombres} {p.apellidos}
+                        </td>
+                        <td style={{ padding: "14px 16px", color: "var(--text-secondary)" }}>
+                          {p.telefono || "-"}
+                        </td>
+                        <td style={{ padding: "14px 16px", color: "var(--text-secondary)" }}>
+                          {p.email || "-"}
+                        </td>
+                        <td style={{ padding: "14px 16px", color: "var(--text-muted)", fontFamily: "DM Mono, monospace" }}>
+                          {formatFecha(p.fechaNacimiento)}
+                        </td>
+                        <td style={{ padding: "14px 16px", color: "var(--text-muted)", fontFamily: "DM Mono, monospace" }}>
+                          {formatFecha(p.fechaRegistro)}
+                        </td>
+                        <td style={{ padding: "14px 16px", textAlign: "right" }}>
+                          <div style={{ display: "flex", gap: "6px", justifyContent: "flex-end", alignItems: "center" }}>
+                            {/* Botón Ver Detalles */}
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-sm"
+                              style={{ padding: "6px 10px", fontSize: "12px", display: "inline-flex", alignItems: "center", gap: "5px" }}
+                              onClick={() => navigate(`/pacientes/${p.id}`)}
+                              title="Ver Detalles del Paciente"
+                            >
+                              <EyeIcon />
+                              <span>Detalles</span>
+                            </button>
+
+                            {/* Botón Ver Historia Clínica */}
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-sm"
+                              style={{ padding: "6px 10px", fontSize: "12px", display: "inline-flex", alignItems: "center", gap: "5px" }}
+                              onClick={() => navigate(`/historias-clinicas/${p.historiaClinicaId || p.id}`)}
+                              title="Ver Historia Clínica"
+                            >
+                              <FileTextIcon />
+                              <span>Historia</span>
+                            </button>
+
+                            {/* Botón Eliminar Paciente */}
+                            <button
+                              type="button"
+                              className="btn btn-danger btn-sm"
+                              style={{ padding: "6px 10px", fontSize: "12px", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+                              onClick={() => handleEliminarPaciente(p.id, `${p.nombres} ${p.apellidos}`)}
+                              title="Eliminar Paciente"
+                            >
+                              <TrashIcon />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
